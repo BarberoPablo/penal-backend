@@ -1,8 +1,27 @@
+import 'dotenv/config';
+import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { AppModule } from './app.module.js';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }));
+
+  const config = new DocumentBuilder()
+    .setTitle('Liga Penal API')
+    .setDescription('Age of Empires II tournament platform')
+    .setVersion('0.1.0')
+    .build();
+
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api', app, document);
+
   await app.listen(process.env.PORT ?? 3001);
 }
-bootstrap();
+
+bootstrap().catch((err) => {
+  console.error('Failed to bootstrap application', err);
+  process.exit(1);
+});
