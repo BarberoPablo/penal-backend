@@ -1,0 +1,21 @@
+1- PRISMA
+Migration, for sync new schema with DB:
+  npx prisma migrate dev --name XXXXX
+  To generate the prisma client based on the prisma schema for type-safety:
+    npx prisma generate
+
+Run DOCKER commands
+docker exec -it staybnb-db psql -U staybnb
+
+Visual UI:
+  ** From wsl this doesn't work:
+    npx prisma studio
+  1- hostname -I
+  2- npx prisma studio --port 5555 --browser none
+  3- Access chrome with: http://{{hostname}}:5555/ -> http://172.31.247.163:5555/
+
+Testing
+npm run test fileRoute
+
+Lint
+npm run lint
