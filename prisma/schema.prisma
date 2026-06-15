@@ -1,8 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client"
   output   = "../generated/prisma"
@@ -12,7 +7,92 @@ datasource db {
   provider = "postgresql"
 }
 
+model User {
+  id          Int      @id @default(autoincrement())
+  steamId     String?  @unique
+  displayName String
+  avatarUrl   String?
+  elo         Int      @default(1000)
+  leagueId    String?
+  league      League?  @relation(fields: [leagueId], references: [id])
+
+  playerCivilizations PlayerCivilization[]
+  seriesAsPlayer1     Series[]            @relation("Player1")
+  seriesAsPlayer2     Series[]            @relation("Player2")
+  wonSeries           Series[]            @relation("SeriesWinner")
+  matchResults        Match[]             @relation("MatchWinner")
+}
+
+model League {
+  id       String  @id
+  name     String
+  eloMin   Int
+  eloMax   Int?
+  imageUrl String?
+
+  players             User[]
+  playerCivilizations PlayerCivilization[]
+  series              Series[]
+}
+
 model Civilization {
-  id   String @id @default(cuid())
-  name String
+  id       String  @id
+  name     String  @unique
+  imageUrl String?
+  baseCost Int
+
+  playerCivilizations PlayerCivilization[]
+  matchesAsP1Civ      Match[]             @relation("Player1Civ")
+  matchesAsP2Civ      Match[]             @relation("Player2Civ")
+}
+
+model PlayerCivilization {
+  id    Int    @id @default(autoincrement())
+  userId Int
+  civId  String
+  leagueId String
+
+  user         User         @relation(fields: [userId], references: [id])
+  civilization Civilization @relation(fields: [civId], references: [id])
+  league       League       @relation(fields: [leagueId], references: [id])
+
+  @@unique([userId, civId, leagueId])
+}
+
+enum SeriesStatus {
+  PENDING
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+model Series {
+  id        Int          @id @default(autoincrement())
+  leagueId  String
+  player1Id Int
+  player2Id Int
+  winnerId  Int?
+  status    SeriesStatus @default(PENDING)
+  round     Int          @default(1)
+
+  league  League @relation(fields: [leagueId], references: [id])
+  player1 User   @relation("Player1", fields: [player1Id], references: [id])
+  player2 User   @relation("Player2", fields: [player2Id], references: [id])
+  winner  User?  @relation("SeriesWinner", fields: [winnerId], references: [id])
+  matches Match[]
+}
+
+model Match {
+  id           Int       @id @default(autoincrement())
+  seriesId     Int
+  mapName      String?
+  winnerId     Int?
+  player1CivId String?
+  player2CivId String?
+  completedAt  DateTime?
+
+  series      Series         @relation(fields: [seriesId], references: [id])
+  winner      User?          @relation("MatchWinner", fields: [winnerId], references: [id])
+  player1Civ  Civilization?  @relation("Player1Civ", fields: [player1CivId], references: [id])
+  player2Civ  Civilization?  @relation("Player2Civ", fields: [player2CivId], references: [id])
 }
