@@ -3,6 +3,7 @@ import { ApiTags, ApiExcludeEndpoint, ApiOkResponse } from '@nestjs/swagger';
 import type { Request, Response } from 'express';
 import { AuthService } from './auth.service.js';
 import type { AuthUser } from './auth.service.js';
+import { AuthUserEntity } from './entities/auth-user.entity.js';
 import { buildSteamLoginUrl } from './steam-openid.js';
 import { authConfig } from './config.js';
 import { Public } from './decorators/public.decorator.js';
@@ -17,8 +18,8 @@ export class AuthController {
   @Get('steam')
   @Redirect()
   steamLogin() {
-    const returnUrl = `${authConfig.backendUrl}/auth/steam/return`;
-    return { url: buildSteamLoginUrl(returnUrl) };
+    const returnUrl = `${authConfig.frontendUrl}/api/auth/steam/return`;
+    return { url: buildSteamLoginUrl(returnUrl, authConfig.frontendUrl) };
   }
 
   @Public()
@@ -42,7 +43,7 @@ export class AuthController {
   }
 
   @Get('me')
-  @ApiOkResponse({ description: 'Current authenticated user' })
+  @ApiOkResponse({ type: AuthUserEntity })
   getMe(@CurrentUser() user: AuthUser) {
     return user;
   }

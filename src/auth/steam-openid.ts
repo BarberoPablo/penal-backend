@@ -3,12 +3,12 @@ import { authConfig } from './config.js';
 const STEAM_OPENID_URL = 'https://steamcommunity.com/openid/login';
 const STEAM_API_URL = 'https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/';
 
-export function buildSteamLoginUrl(returnUrl: string): string {
+export function buildSteamLoginUrl(returnUrl: string, realm?: string): string {
   const params = new URLSearchParams({
     'openid.ns': 'http://specs.openid.net/auth/2.0',
     'openid.mode': 'checkid_setup',
     'openid.return_to': returnUrl,
-    'openid.realm': authConfig.backendUrl,
+    'openid.realm': realm ?? authConfig.backendUrl,
     'openid.identity': 'http://specs.openid.net/auth/2.0/identifier_select',
     'openid.claimed_id': 'http://specs.openid.net/auth/2.0/identifier_select',
   });
