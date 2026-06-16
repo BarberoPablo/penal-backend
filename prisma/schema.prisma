@@ -7,11 +7,17 @@ datasource db {
   provider = "postgresql"
 }
 
+enum Role {
+  USER
+  ADMIN
+}
+
 model User {
   id          Int      @id @default(autoincrement())
   steamId     String?  @unique
   displayName String
   avatarUrl   String?
+  role        Role     @default(USER)
   elo         Int      @default(1000)
   leagueId    String?
   league      League?  @relation(fields: [leagueId], references: [id])
