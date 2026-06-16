@@ -18,5 +18,5 @@ export class CreateCivilizationDto {
   @ApiProperty({ example: 240 })
   @IsInt()
   @Min(0)
-  baseCost!: number;
+  cost!: number;
 }

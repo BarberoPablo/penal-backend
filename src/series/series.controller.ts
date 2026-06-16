@@ -1,48 +1,50 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  ParseIntPipe,
-} from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
-import { SeriesService } from './series.service.js';
-import { CreateSeriesDto } from './dto/create-series.dto.js';
-import { UpdateSeriesDto } from './dto/update-series.dto.js';
+// import {
+//   Controller,
+//   Get,
+//   Post,
+//   Body,
+//   Patch,
+//   Param,
+//   Delete,
+//   ParseIntPipe,
+// } from '@nestjs/common';
+// import { ApiTags } from '@nestjs/swagger';
+// import { SeriesService } from './series.service.js';
+// import { CreateSeriesDto } from './dto/create-series.dto.js';
+// import { UpdateSeriesDto } from './dto/update-series.dto.js';
 
-@ApiTags('Series')
-@Controller('series')
-export class SeriesController {
-  constructor(private readonly seriesService: SeriesService) {}
+// @ApiTags('Series')
+// @Controller('series')
+// export class SeriesController {
+//   constructor(private readonly seriesService: SeriesService) {}
 
-  @Post()
-  create(@Body() createSeriesDto: CreateSeriesDto) {
-    return this.seriesService.create(createSeriesDto);
-  }
+//   @Post()
+//   create(@Body() createSeriesDto: CreateSeriesDto) {
+//     return this.seriesService.create(createSeriesDto);
+//   }
 
-  @Get()
-  findAll() {
-    return this.seriesService.findAll();
-  }
+//   @Get()
+//   findAll() {
+//     return this.seriesService.findAll();
+//   }
 
-  @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.seriesService.findOne(id);
-  }
+//   @Get(':id')
+//   findOne(@Param('id', ParseIntPipe) id: number) {
+//     return this.seriesService.findOne(id);
+//   }
 
-  @Patch(':id')
-  update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() updateSeriesDto: UpdateSeriesDto,
-  ) {
-    return this.seriesService.update(id, updateSeriesDto);
-  }
+//   @Patch(':id')
+//   update(
+//     @Param('id', ParseIntPipe) id: number,
+//     @Body() updateSeriesDto: UpdateSeriesDto,
+//   ) {
+//     return this.seriesService.update(id, updateSeriesDto);
+//   }
 
-  @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.seriesService.remove(id);
-  }
-}
+//   @Delete(':id')
+//   remove(@Param('id', ParseIntPipe) id: number) {
+//     return this.seriesService.remove(id);
+//   }
+// }
+
+export {};

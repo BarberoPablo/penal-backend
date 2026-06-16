@@ -39,7 +39,7 @@ model Civilization {
   id       String  @id
   name     String  @unique
   imageUrl String?
-  baseCost Int
+  cost Int
 
   playerCivilizations PlayerCivilization[]
   matchesAsP1Civ      Match[]             @relation("Player1Civ")
@@ -67,13 +67,15 @@ enum SeriesStatus {
 }
 
 model Series {
-  id        Int          @id @default(autoincrement())
-  leagueId  String
-  player1Id Int
-  player2Id Int
-  winnerId  Int?
-  status    SeriesStatus @default(PENDING)
-  round     Int          @default(1)
+  id          Int          @id @default(autoincrement())
+  leagueId    String
+  player1Id   Int
+  player2Id   Int
+  winnerId    Int?
+  status      SeriesStatus @default(PENDING)
+  round       Int          @default(1)
+  scheduledAt DateTime?
+  completedAt DateTime?
 
   league  League @relation(fields: [leagueId], references: [id])
   player1 User   @relation("Player1", fields: [player1Id], references: [id])

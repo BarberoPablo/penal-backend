@@ -11,18 +11,18 @@ export class CivilizationsRepository {
     return this.prisma.civilization.findUnique({ where: { id } });
   }
 
-  async create(data: {
+  async create(    data: {
     id: string;
     name: string;
     imageUrl?: string;
-    baseCost: number;
+    cost: number;
   }) {
     return this.prisma.civilization.create({ data });
   }
 
   async update(
     id: string,
-    data: { name?: string; imageUrl?: string; baseCost?: number },
+    data: { name?: string; imageUrl?: string; cost?: number },
   ) {
     return this.prisma.civilization.update({ where: { id }, data });
   }

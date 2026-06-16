@@ -4,40 +4,54 @@ export class LeaguesRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async findAll() {
-    return this.prisma.league.findMany({ orderBy: { name: 'asc' } });
-  }
+    const leagues = await this.prisma.league.findMany({
+      orderBy: { name: 'asc' },
+      include: {
+        _count: { select: { players: true } },
+      },
+    });
 
-  async findById(id: string) {
-    return this.prisma.league.findUnique({
-      where: { id },
-      include: { players: true },
+    const leagueIds = leagues.map((l) => l.id);
+    const completedCounts = await this.prisma.series.groupBy({
+      by: ['leagueId'],
+      where: { leagueId: { in: leagueIds }, status: 'COMPLETED' },
+      _count: { id: true },
+    });
+
+    const countMap = new Map(
+      completedCounts.map((c) => [c.leagueId, c._count.id]),
+    );
+
+    return leagues.map((l) => {
+      const { _count, ...rest } = l;
+      return {
+        ...rest,
+        playerCount: _count.players,
+        matchesPlayed: countMap.get(l.id) ?? 0,
+      };
     });
   }
 
-  async create(data: {
-    id: string;
-    name: string;
-    eloMin: number;
-    eloMax?: number;
-    imageUrl?: string;
-  }) {
-    return this.prisma.league.create({ data });
-  }
+  async findById(id: string) {
+    const league = await this.prisma.league.findUnique({
+      where: { id },
+      include: {
+        _count: { select: { players: true } },
+      },
+    });
 
-  async update(
-    id: string,
-    data: {
-      name?: string;
-      eloMin?: number;
-      eloMax?: number;
-      imageUrl?: string;
-    },
-  ) {
-    return this.prisma.league.update({ where: { id }, data });
-  }
+    if (!league) return null;
 
-  async delete(id: string) {
-    return this.prisma.league.delete({ where: { id } });
+    const completedCount = await this.prisma.series.count({
+      where: { leagueId: id, status: 'COMPLETED' },
+    });
+
+    const { _count, ...rest } = league;
+    return {
+      ...rest,
+      playerCount: _count.players,
+      matchesPlayed: completedCount,
+    };
   }
 
   async getPlayersByLeagueId(leagueId: string) {
