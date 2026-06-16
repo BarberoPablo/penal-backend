@@ -12,12 +12,14 @@ import { CivilizationsService } from './civilizations.service.js';
 import { CreateCivilizationDto } from './dto/create-civilization.dto.js';
 import { UpdateCivilizationDto } from './dto/update-civilization.dto.js';
 import { CivilizationEntity } from './entities/civilization.entity.js';
+import { Public } from '../auth/decorators/public.decorator.js';
 
 @ApiTags('Civilizations')
 @Controller('civilizations')
 export class CivilizationsController {
   constructor(private readonly civilizationsService: CivilizationsService) {}
 
+  @Public()
   @Get()
   @ApiOkResponse({ type: CivilizationEntity, isArray: true })
   findAll() {

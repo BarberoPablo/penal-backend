@@ -13,18 +13,21 @@ import { CreateLeagueDto } from './dto/create-league.dto.js';
 import { UpdateLeagueDto } from './dto/update-league.dto.js';
 import { LeagueEntity } from './entities/league.entity.js';
 import { LeagueDetailDto } from './dto/league-detail.dto.js';
+import { Public } from '../auth/decorators/public.decorator.js';
 
 @ApiTags('Leagues')
 @Controller('leagues')
 export class LeaguesController {
   constructor(private readonly leaguesService: LeaguesService) {}
 
+  @Public()
   @Get()
   @ApiOkResponse({ type: LeagueEntity, isArray: true })
   findAll() {
     return this.leaguesService.findAll();
   }
 
+  @Public()
   @Get(':id/detail')
   @ApiOkResponse({ type: LeagueDetailDto })
   getDetail(@Param('id') id: string) {
