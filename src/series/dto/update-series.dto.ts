@@ -8,7 +8,7 @@ export class UpdateSeriesDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsInt()
-  winnerTeamId?: number;
+  winnerId?: number;
 
   @ApiPropertyOptional({ enum: ['PENDING', 'ACTIVE', 'COMPLETED', 'CANCELLED'] })
   @IsOptional()

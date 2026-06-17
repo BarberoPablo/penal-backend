@@ -1,28 +1,25 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsInt, IsOptional, IsString } from 'class-validator';
+import { IsInt, IsOptional } from 'class-validator';
 
 export class CreateMatchDto {
   @ApiProperty()
   @IsInt()
   seriesId!: number;
 
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  mapName?: string;
+  @ApiProperty()
+  @IsInt()
+  mapId!: number;
+
+  @ApiProperty()
+  @IsInt()
+  playerACivSelectionId!: number;
+
+  @ApiProperty()
+  @IsInt()
+  playerBCivSelectionId!: number;
 
   @ApiPropertyOptional()
   @IsOptional()
   @IsInt()
-  winnerTeamId?: number;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  player1CivId?: string;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  player2CivId?: string;
+  winnerId?: number;
 }

@@ -2,17 +2,17 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsInt, IsOptional, IsString, Min } from 'class-validator';
 
 export class CreateSeriesDto {
-  @ApiProperty({ example: 'league-i', description: 'ID of the competition (currently references League.id)' })
+  @ApiProperty({ example: 'league-i', description: 'ID of the league' })
   @IsString()
-  competitionId!: string;
+  leagueId!: string;
 
   @ApiProperty()
   @IsInt()
-  teamAId!: number;
+  playerAId!: number;
 
   @ApiProperty()
   @IsInt()
-  teamBId!: number;
+  playerBId!: number;
 
   @ApiPropertyOptional({ default: 1 })
   @IsOptional()

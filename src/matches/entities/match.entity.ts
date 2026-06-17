@@ -1,9 +1,9 @@
 export class MatchEntity {
   id!: number;
   seriesId!: number;
-  mapName!: string | null;
-  winnerTeamId!: number | null;
-  player1CivId!: string | null;
-  player2CivId!: string | null;
+  mapId!: number;
+  winnerId!: number | null;
+  playerACivSelectionId!: number;
+  playerBCivSelectionId!: number;
   completedAt!: Date | null;
 }
