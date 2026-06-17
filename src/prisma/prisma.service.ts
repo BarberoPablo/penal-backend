@@ -36,14 +36,11 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
   get series() {
     return this.client.series;
   }
-  get seriesTeam() {
-    return this.client.seriesTeam;
-  }
-  get seriesTeamMember() {
-    return this.client.seriesTeamMember;
-  }
   get match() {
     return this.client.match;
+  }
+  get map() {
+    return this.client.map;
   }
 
   async onModuleInit() {
