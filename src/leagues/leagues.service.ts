@@ -26,37 +26,37 @@ export class LeaguesService {
     const league = await this.repository.findById(id);
     if (!league) return null;
 
-    const [players, series] = await Promise.all([
-      this.repository.getPlayersByLeagueId(id),
+    const [participants, series] = await Promise.all([
+      this.repository.getParticipantsByLeagueId(id),
       this.repository.getSeriesByLeagueId(id),
     ]);
 
-    const standings: LeagueStandingDto[] = players.map((p, i) => ({
+    const standings: LeagueStandingDto[] = participants.map((p, i) => ({
       rank: i + 1,
-      playerName: p.displayName,
-      playerInitial: p.displayName.charAt(0).toUpperCase(),
-      points: p.elo,
-      currentElo: p.elo,
-      peakElo: p.elo,
+      playerName: p.user.displayName,
+      playerInitial: p.user.displayName.charAt(0).toUpperCase(),
+      points: p.points,
+      currentElo: p.user.elo,
+      peakElo: p.user.elo,
       recentForm: [],
     }));
 
     const completedSeries = series.filter((s) => s.status === 'COMPLETED');
     const matches: LeagueMatchResultDto[] = completedSeries.map((s) => {
       const p1Wins = s.matches.filter(
-        (m) => m.winnerId === s.player1Id,
+        (m) => m.winnerTeamId === s.teamAId,
       ).length;
       const p2Wins = s.matches.filter(
-        (m) => m.winnerId === s.player2Id,
+        (m) => m.winnerTeamId === s.teamBId,
       ).length;
       const winner =
-        s.winnerId === s.player1Id ? 'player1' : 'player2';
+        s.winnerTeamId === s.teamAId ? 'player1' : 'player2';
       const firstMap = s.matches[0]?.player1Civ?.name ?? '';
 
       return {
         id: s.id,
-        player1Name: s.player1.displayName,
-        player2Name: s.player2.displayName,
+        player1Name: s.teamA.members[0]?.user.displayName ?? '',
+        player2Name: s.teamB.members[0]?.user.displayName ?? '',
         score1: p1Wins,
         score2: p2Wins,
         winner,
@@ -81,8 +81,8 @@ export class LeaguesService {
 
         return {
           id: s.id,
-          player1Name: s.player1.displayName,
-          player2Name: s.player2.displayName,
+          player1Name: s.teamA.members[0]?.user.displayName ?? '',
+          player2Name: s.teamB.members[0]?.user.displayName ?? '',
           date,
           time,
         };

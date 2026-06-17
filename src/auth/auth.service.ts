@@ -59,6 +59,9 @@ export class AuthService {
   async validateUser(payload: JwtPayload): Promise<AuthUser> {
     const user = await this.prisma.user.findUnique({
       where: { id: payload.sub },
+      include: {
+        participations: { include: { league: true } },
+      },
     });
 
     if (!user) throw new Error('User not found');

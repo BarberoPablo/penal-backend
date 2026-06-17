@@ -19,6 +19,10 @@ export class PlayerCivilizationsService {
     return this.repository.findById(id);
   }
 
+  findByParticipantId(participantId: number) {
+    return this.repository.findByParticipantId(participantId);
+  }
+
   create(dto: CreatePlayerCivilizationDto) {
     return this.repository.create(dto);
   }
