@@ -4,5 +4,4 @@ export class UserEntity {
   displayName!: string;
   avatarUrl!: string | null;
   elo!: number;
-  leagueId!: string | null;
 }

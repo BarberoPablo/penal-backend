@@ -1,6 +1,5 @@
 export class PlayerCivilizationEntity {
   id!: number;
-  userId!: number;
+  participantId!: number;
   civId!: string;
-  leagueId!: string;
 }

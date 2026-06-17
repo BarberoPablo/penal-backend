@@ -4,13 +4,9 @@ import { IsInt, IsString } from 'class-validator';
 export class CreatePlayerCivilizationDto {
   @ApiProperty()
   @IsInt()
-  userId!: number;
+  participantId!: number;
 
   @ApiProperty()
   @IsString()
   civId!: string;
-
-  @ApiProperty()
-  @IsString()
-  leagueId!: string;
 }

@@ -21,9 +21,4 @@ export class CreateUserDto {
   @IsInt()
   @Min(0)
   elo?: number;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  leagueId?: string;
 }

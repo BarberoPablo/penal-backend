@@ -14,7 +14,7 @@ export class CreateMatchDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsInt()
-  winnerId?: number;
+  winnerTeamId?: number;
 
   @ApiPropertyOptional()
   @IsOptional()
