@@ -10,6 +10,19 @@ const pool = new Pool({
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
+const maps = [
+  { name: "Arabia", description: "Standard open map" },
+  { name: "Arena", description: "Closed map with walls" },
+  { name: "Black Forest", description: "Heavily forested closed map" },
+  { name: "Gold Rush", description: "Open map with central gold" },
+  { name: "Four Lakes", description: "Open map with four lakes" },
+  { name: "Land Nomad", description: "Open map with scattered starts" },
+  { name: "Hideout", description: "Closed map with forest hides" },
+  { name: "Mountain Ridge", description: "Open map with mountain ridge" },
+  { name: "Runestones", description: "Open map with runestone landmarks" },
+  { name: "Scandinavia", description: "Mixed terrain map" },
+];
+
 const civilizations = [
   { id: "franks", name: "Franks", imageUrl: "https://i.postimg.cc/XJzDL7cR/menu-techtree-franks.webp", cost: 240 },
   { id: "britons", name: "Britons", imageUrl: "https://i.postimg.cc/pT61CXYq/menu-techtree-britons.webp", cost: 220 },
@@ -131,6 +144,15 @@ const usersByLeague: Record<string, { displayName: string; elo: number }[]> = {
 };
 
 async function seed() {
+  console.log("Seeding maps...");
+  for (const map of maps) {
+    await prisma.map.upsert({
+      where: { name: map.name },
+      update: map,
+      create: map,
+    });
+  }
+
   console.log("Seeding civilizations...");
   for (const civ of civilizations) {
     await prisma.civilization.upsert({
