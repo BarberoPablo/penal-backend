@@ -19,14 +19,9 @@ model User {
   avatarUrl   String?
   role        Role     @default(USER)
   elo         Int      @default(1000)
-  leagueId    String?
-  league      League?  @relation(fields: [leagueId], references: [id])
 
-  playerCivilizations PlayerCivilization[]
-  seriesAsPlayer1     Series[]            @relation("Player1")
-  seriesAsPlayer2     Series[]            @relation("Player2")
-  wonSeries           Series[]            @relation("SeriesWinner")
-  matchResults        Match[]             @relation("MatchWinner")
+  participations  LeagueParticipant[]
+  teamMemberships SeriesTeamMember[]
 }
 
 model League {
@@ -36,9 +31,8 @@ model League {
   eloMax   Int?
   imageUrl String?
 
-  players             User[]
-  playerCivilizations PlayerCivilization[]
-  series              Series[]
+  participants LeagueParticipant[]
+  series       Series[]
 }
 
 model Civilization {
@@ -52,17 +46,28 @@ model Civilization {
   matchesAsP2Civ      Match[]             @relation("Player2Civ")
 }
 
-model PlayerCivilization {
-  id    Int    @id @default(autoincrement())
-  userId Int
-  civId  String
+model LeagueParticipant {
+  id       Int @id @default(autoincrement())
   leagueId String
+  userId   Int
+  points   Int @default(0)
 
-  user         User         @relation(fields: [userId], references: [id])
-  civilization Civilization @relation(fields: [civId], references: [id])
-  league       League       @relation(fields: [leagueId], references: [id])
+  league        League                @relation(fields: [leagueId], references: [id])
+  user          User                  @relation(fields: [userId], references: [id])
+  civilizations PlayerCivilization[]
 
-  @@unique([userId, civId, leagueId])
+  @@unique([leagueId, userId])
+}
+
+model PlayerCivilization {
+  id            Int    @id @default(autoincrement())
+  participantId Int
+  civId         String
+
+  participant  LeagueParticipant @relation(fields: [participantId], references: [id])
+  civilization Civilization      @relation(fields: [civId], references: [id])
+
+  @@unique([participantId, civId])
 }
 
 enum SeriesStatus {
@@ -73,34 +78,61 @@ enum SeriesStatus {
 }
 
 model Series {
-  id          Int          @id @default(autoincrement())
-  leagueId    String
-  player1Id   Int
-  player2Id   Int
-  winnerId    Int?
-  status      SeriesStatus @default(PENDING)
-  round       Int          @default(1)
-  scheduledAt DateTime?
-  completedAt DateTime?
+  id            Int          @id @default(autoincrement())
+  competitionId String
+  teamAId       Int          @unique
+  teamBId       Int          @unique
+  winnerTeamId  Int?
+  status        SeriesStatus @default(PENDING)
+  round         Int          @default(1)
+  scheduledAt   DateTime?
+  completedAt   DateTime?
 
-  league  League @relation(fields: [leagueId], references: [id])
-  player1 User   @relation("Player1", fields: [player1Id], references: [id])
-  player2 User   @relation("Player2", fields: [player2Id], references: [id])
-  winner  User?  @relation("SeriesWinner", fields: [winnerId], references: [id])
+  league  League      @relation(fields: [competitionId], references: [id])
+  teamA   SeriesTeam  @relation("TeamA", fields: [teamAId], references: [id])
+  teamB   SeriesTeam  @relation("TeamB", fields: [teamBId], references: [id])
+  winner  SeriesTeam? @relation("SeriesWinner", fields: [winnerTeamId], references: [id])
   matches Match[]
+}
+
+model SeriesTeam {
+  id      Int      @id @default(autoincrement())
+  side    TeamSide
+
+  members     SeriesTeamMember[]
+  seriesA     Series[] @relation("TeamA")
+  seriesB     Series[] @relation("TeamB")
+  seriesWinner Series[] @relation("SeriesWinner")
+  matchWinner Match[]  @relation("MatchWinner")
+}
+
+model SeriesTeamMember {
+  id     Int @id @default(autoincrement())
+  teamId Int
+  userId Int
+
+  team SeriesTeam @relation(fields: [teamId], references: [id])
+  user User       @relation(fields: [userId], references: [id])
+
+  @@unique([teamId, userId])
+}
+
+enum TeamSide {
+  A
+  B
 }
 
 model Match {
   id           Int       @id @default(autoincrement())
   seriesId     Int
   mapName      String?
-  winnerId     Int?
+  winnerTeamId Int?
   player1CivId String?
   player2CivId String?
   completedAt  DateTime?
 
-  series      Series         @relation(fields: [seriesId], references: [id])
-  winner      User?          @relation("MatchWinner", fields: [winnerId], references: [id])
-  player1Civ  Civilization?  @relation("Player1Civ", fields: [player1CivId], references: [id])
-  player2Civ  Civilization?  @relation("Player2Civ", fields: [player2CivId], references: [id])
+  series     Series         @relation(fields: [seriesId], references: [id])
+  winnerTeam SeriesTeam?    @relation("MatchWinner", fields: [winnerTeamId], references: [id])
+  player1Civ Civilization?  @relation("Player1Civ", fields: [player1CivId], references: [id])
+  player2Civ Civilization?  @relation("Player2Civ", fields: [player2CivId], references: [id])
 }
