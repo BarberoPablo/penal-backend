@@ -13,13 +13,13 @@ export class LeaguesRepository {
 
     const leagueIds = leagues.map((l) => l.id);
     const completedCounts = await this.prisma.series.groupBy({
-      by: ['competitionId'],
-      where: { competitionId: { in: leagueIds }, status: 'COMPLETED' },
+      by: ['leagueId'],
+      where: { leagueId: { in: leagueIds }, status: 'COMPLETED' },
       _count: { id: true },
     });
 
     const countMap = new Map(
-      completedCounts.map((c) => [c.competitionId, c._count.id]),
+      completedCounts.map((c) => [c.leagueId, c._count.id]),
     );
 
     return leagues.map((l) => {
@@ -43,7 +43,7 @@ export class LeaguesRepository {
     if (!league) return null;
 
     const completedCount = await this.prisma.series.count({
-      where: { competitionId: id, status: 'COMPLETED' },
+      where: { leagueId: id, status: 'COMPLETED' },
     });
 
     const { _count, ...rest } = league;
@@ -64,13 +64,13 @@ export class LeaguesRepository {
 
   async getSeriesByLeagueId(leagueId: string) {
     return this.prisma.series.findMany({
-      where: { competitionId: leagueId },
+      where: { leagueId },
       include: {
-        teamA: { include: { members: { include: { user: true } } } },
-        teamB: { include: { members: { include: { user: true } } } },
-        winner: { include: { members: { include: { user: true } } } },
+        playerA: { include: { user: true } },
+        playerB: { include: { user: true } },
+        winner: { include: { user: true } },
         matches: {
-          include: { player1Civ: true, player2Civ: true, winnerTeam: { include: { members: { include: { user: true } } } } },
+          include: { playerACiv: { include: { civilization: true } }, playerBCiv: { include: { civilization: true } }, winner: { include: { user: true } } },
         },
       },
       orderBy: { id: 'desc' },

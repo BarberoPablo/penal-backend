@@ -9,8 +9,8 @@ export class SeriesRepository {
   async findAll() {
     return this.prisma.series.findMany({
       include: {
-        teamA: { include: { members: { include: { user: true } } } },
-        teamB: { include: { members: { include: { user: true } } } },
+        playerA: { include: { user: true } },
+        playerB: { include: { user: true } },
         matches: true,
       },
       orderBy: { id: 'desc' },
@@ -21,11 +21,15 @@ export class SeriesRepository {
     return this.prisma.series.findUnique({
       where: { id },
       include: {
-        teamA: { include: { members: { include: { user: true } } } },
-        teamB: { include: { members: { include: { user: true } } } },
-        winner: { include: { members: { include: { user: true } } } },
+        playerA: { include: { user: true } },
+        playerB: { include: { user: true } },
+        winner: { include: { user: true } },
         matches: {
-          include: { player1Civ: true, player2Civ: true, winnerTeam: { include: { members: { include: { user: true } } } } },
+          include: {
+            playerACiv: { include: { civilization: true } },
+            playerBCiv: { include: { civilization: true } },
+            winner: { include: { user: true } },
+          },
         },
       },
     });
@@ -33,11 +37,11 @@ export class SeriesRepository {
 
   async findByLeagueId(leagueId: string) {
     return this.prisma.series.findMany({
-      where: { competitionId: leagueId },
+      where: { leagueId },
       include: {
-        teamA: { include: { members: { include: { user: true } } } },
-        teamB: { include: { members: { include: { user: true } } } },
-        winner: { include: { members: { include: { user: true } } } },
+        playerA: { include: { user: true } },
+        playerB: { include: { user: true } },
+        winner: { include: { user: true } },
         matches: true,
       },
       orderBy: { id: 'desc' },
@@ -45,9 +49,9 @@ export class SeriesRepository {
   }
 
   async create(data: {
-    competitionId: string;
-    teamAId: number;
-    teamBId: number;
+    leagueId: string;
+    playerAId: number;
+    playerBId: number;
     round?: number;
   }) {
     return this.prisma.series.create({ data });
@@ -55,7 +59,7 @@ export class SeriesRepository {
 
   async update(
     id: number,
-    data: { winnerTeamId?: number; status?: SeriesStatus; round?: number },
+    data: { winnerId?: number; status?: SeriesStatus; round?: number },
   ) {
     return this.prisma.series.update({ where: { id }, data });
   }
