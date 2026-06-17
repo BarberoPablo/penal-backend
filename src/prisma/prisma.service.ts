@@ -30,8 +30,17 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
   get playerCivilization() {
     return this.client.playerCivilization;
   }
+  get leagueParticipant() {
+    return this.client.leagueParticipant;
+  }
   get series() {
     return this.client.series;
+  }
+  get seriesTeam() {
+    return this.client.seriesTeam;
+  }
+  get seriesTeamMember() {
+    return this.client.seriesTeamMember;
   }
   get match() {
     return this.client.match;
