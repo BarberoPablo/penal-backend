@@ -44,19 +44,19 @@ export class LeaguesService {
     const completedSeries = series.filter((s) => s.status === 'COMPLETED');
     const matches: LeagueMatchResultDto[] = completedSeries.map((s) => {
       const p1Wins = s.matches.filter(
-        (m) => m.winnerTeamId === s.teamAId,
+        (m) => m.winnerId === s.playerAId,
       ).length;
       const p2Wins = s.matches.filter(
-        (m) => m.winnerTeamId === s.teamBId,
+        (m) => m.winnerId === s.playerBId,
       ).length;
       const winner =
-        s.winnerTeamId === s.teamAId ? 'player1' : 'player2';
-      const firstMap = s.matches[0]?.player1Civ?.name ?? '';
+        s.winnerId === s.playerAId ? 'player1' : 'player2';
+      const firstMap = s.matches[0]?.playerACiv?.civilization?.name ?? '';
 
       return {
         id: s.id,
-        player1Name: s.teamA.members[0]?.user.displayName ?? '',
-        player2Name: s.teamB.members[0]?.user.displayName ?? '',
+        player1Name: s.playerA.user.displayName,
+        player2Name: s.playerB.user.displayName,
         score1: p1Wins,
         score2: p2Wins,
         winner,
@@ -81,8 +81,8 @@ export class LeaguesService {
 
         return {
           id: s.id,
-          player1Name: s.teamA.members[0]?.user.displayName ?? '',
-          player2Name: s.teamB.members[0]?.user.displayName ?? '',
+          player1Name: s.playerA.user.displayName,
+          player2Name: s.playerB.user.displayName,
           date,
           time,
         };
