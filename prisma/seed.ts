@@ -149,14 +149,21 @@ async function seed() {
     });
   }
 
-  console.log("Seeding users...");
+  console.log("Seeding users and participations...");
   for (const [leagueId, users] of Object.entries(usersByLeague)) {
     for (const user of users) {
-      await prisma.user.create({
+      const createdUser = await prisma.user.create({
         data: {
           displayName: user.displayName,
           elo: user.elo,
+        },
+      });
+
+      await prisma.leagueParticipant.create({
+        data: {
           leagueId,
+          userId: createdUser.id,
+          points: 0,
         },
       });
     }
