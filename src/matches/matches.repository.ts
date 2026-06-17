@@ -15,7 +15,7 @@ export class MatchesRepository {
       where: { id },
       include: {
         series: true,
-        winner: true,
+        winnerTeam: { include: { members: { include: { user: true } } } },
         player1Civ: true,
         player2Civ: true,
       },
@@ -25,7 +25,7 @@ export class MatchesRepository {
   async findBySeriesId(seriesId: number) {
     return this.prisma.match.findMany({
       where: { seriesId },
-      include: { winner: true, player1Civ: true, player2Civ: true },
+      include: { winnerTeam: { include: { members: { include: { user: true } } } }, player1Civ: true, player2Civ: true },
       orderBy: { id: 'asc' },
     });
   }
@@ -33,7 +33,7 @@ export class MatchesRepository {
   async create(data: {
     seriesId: number;
     mapName?: string;
-    winnerId?: number;
+    winnerTeamId?: number;
     player1CivId?: string;
     player2CivId?: string;
   }) {
@@ -44,7 +44,7 @@ export class MatchesRepository {
     id: number,
     data: {
       mapName?: string;
-      winnerId?: number;
+      winnerTeamId?: number;
       player1CivId?: string;
       player2CivId?: string;
       completedAt?: Date;

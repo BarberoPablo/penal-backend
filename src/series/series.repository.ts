@@ -8,7 +8,11 @@ export class SeriesRepository {
 
   async findAll() {
     return this.prisma.series.findMany({
-      include: { player1: true, player2: true, matches: true },
+      include: {
+        teamA: { include: { members: { include: { user: true } } } },
+        teamB: { include: { members: { include: { user: true } } } },
+        matches: true,
+      },
       orderBy: { id: 'desc' },
     });
   }
@@ -17,11 +21,11 @@ export class SeriesRepository {
     return this.prisma.series.findUnique({
       where: { id },
       include: {
-        player1: true,
-        player2: true,
-        winner: true,
+        teamA: { include: { members: { include: { user: true } } } },
+        teamB: { include: { members: { include: { user: true } } } },
+        winner: { include: { members: { include: { user: true } } } },
         matches: {
-          include: { player1Civ: true, player2Civ: true, winner: true },
+          include: { player1Civ: true, player2Civ: true, winnerTeam: { include: { members: { include: { user: true } } } } },
         },
       },
     });
@@ -29,16 +33,21 @@ export class SeriesRepository {
 
   async findByLeagueId(leagueId: string) {
     return this.prisma.series.findMany({
-      where: { leagueId },
-      include: { player1: true, player2: true, winner: true, matches: true },
+      where: { competitionId: leagueId },
+      include: {
+        teamA: { include: { members: { include: { user: true } } } },
+        teamB: { include: { members: { include: { user: true } } } },
+        winner: { include: { members: { include: { user: true } } } },
+        matches: true,
+      },
       orderBy: { id: 'desc' },
     });
   }
 
   async create(data: {
-    leagueId: string;
-    player1Id: number;
-    player2Id: number;
+    competitionId: string;
+    teamAId: number;
+    teamBId: number;
     round?: number;
   }) {
     return this.prisma.series.create({ data });
@@ -46,7 +55,7 @@ export class SeriesRepository {
 
   async update(
     id: number,
-    data: { winnerId?: number; status?: SeriesStatus; round?: number },
+    data: { winnerTeamId?: number; status?: SeriesStatus; round?: number },
   ) {
     return this.prisma.series.update({ where: { id }, data });
   }

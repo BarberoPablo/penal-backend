@@ -5,7 +5,7 @@ export class PlayerCivilizationsRepository {
 
   async findAll() {
     return this.prisma.playerCivilization.findMany({
-      include: { user: true, civilization: true, league: true },
+      include: { participant: { include: { user: true, league: true } }, civilization: true },
       orderBy: { id: 'desc' },
     });
   }
@@ -13,18 +13,18 @@ export class PlayerCivilizationsRepository {
   async findById(id: number) {
     return this.prisma.playerCivilization.findUnique({
       where: { id },
-      include: { user: true, civilization: true, league: true },
+      include: { participant: { include: { user: true, league: true } }, civilization: true },
     });
   }
 
-  async findByUserAndLeague(userId: number, leagueId: string) {
+  async findByParticipantId(participantId: number) {
     return this.prisma.playerCivilization.findMany({
-      where: { userId, leagueId },
+      where: { participantId },
       include: { civilization: true },
     });
   }
 
-  async create(data: { userId: number; civId: string; leagueId: string }) {
+  async create(data: { participantId: number; civId: string }) {
     return this.prisma.playerCivilization.create({ data });
   }
 

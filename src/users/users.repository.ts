@@ -11,8 +11,12 @@ export class UsersRepository {
     return this.prisma.user.findUnique({
       where: { id },
       include: {
-        league: true,
-        playerCivilizations: { include: { civilization: true } },
+        participations: {
+          include: {
+            league: true,
+            civilizations: { include: { civilization: true } },
+          },
+        },
       },
     });
   }
@@ -20,7 +24,9 @@ export class UsersRepository {
   async findBySteamId(steamId: string) {
     return this.prisma.user.findUnique({
       where: { steamId },
-      include: { league: true },
+      include: {
+        participations: { include: { league: true } },
+      },
     });
   }
 
@@ -29,7 +35,6 @@ export class UsersRepository {
     displayName: string;
     avatarUrl?: string;
     elo?: number;
-    leagueId?: string;
   }) {
     return this.prisma.user.create({ data });
   }
@@ -40,7 +45,6 @@ export class UsersRepository {
       displayName?: string;
       avatarUrl?: string;
       elo?: number;
-      leagueId?: string;
     },
   ) {
     return this.prisma.user.update({ where: { id }, data });
