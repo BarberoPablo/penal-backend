@@ -9,6 +9,8 @@ import { CivilizationsModule } from './civilizations/civilizations.module.js';
 import { SeriesModule } from './series/series.module.js';
 import { MatchesModule } from './matches/matches.module.js';
 import { PlayerCivilizationsModule } from './player-civilizations/player-civilizations.module.js';
+import { CompetitionsModule } from './competitions/competitions.module.js';
+import { CompetitionApplicationsModule } from './competition-applications/competition-applications.module.js';
 
 @Module({
   imports: [
@@ -20,6 +22,8 @@ import { PlayerCivilizationsModule } from './player-civilizations/player-civiliz
     SeriesModule,
     MatchesModule,
     PlayerCivilizationsModule,
+    CompetitionsModule,
+    CompetitionApplicationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
