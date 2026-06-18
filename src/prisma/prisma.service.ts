@@ -42,6 +42,18 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
   get map() {
     return this.client.map;
   }
+  get competition() {
+    return this.client.competition;
+  }
+  get competitionAdmin() {
+    return this.client.competitionAdmin;
+  }
+  get competitionApplication() {
+    return this.client.competitionApplication;
+  }
+  get applicationCivilization() {
+    return this.client.applicationCivilization;
+  }
 
   async onModuleInit() {
     await this.client.$connect();
