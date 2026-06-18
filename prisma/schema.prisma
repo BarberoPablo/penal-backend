@@ -12,6 +12,12 @@ enum Role {
   ADMIN
 }
 
+enum ApplicationStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
 model User {
   id          Int      @id @default(autoincrement())
   steamId     String?  @unique
@@ -20,7 +26,57 @@ model User {
   role        Role     @default(USER)
   elo         Int      @default(1000)
 
-  participations LeagueParticipant[]
+  participations         LeagueParticipant[]
+  competitionAdmins      CompetitionAdmin[]
+  competitionApplications CompetitionApplication[]
+}
+
+model Competition {
+  id          String  @id
+  name        String
+  description String?
+  imageUrl    String?
+
+  leagues      League[]
+  admins       CompetitionAdmin[]
+  applications CompetitionApplication[]
+}
+
+model CompetitionAdmin {
+  id            Int @id @default(autoincrement())
+  competitionId String
+  userId        Int
+
+  competition Competition @relation(fields: [competitionId], references: [id])
+  user        User        @relation(fields: [userId], references: [id])
+
+  @@unique([competitionId, userId])
+}
+
+model CompetitionApplication {
+  id            Int               @id @default(autoincrement())
+  competitionId String
+  userId        Int
+  status        ApplicationStatus @default(PENDING)
+  submittedAt   DateTime          @default(now())
+  reviewedAt    DateTime?
+
+  competition          Competition              @relation(fields: [competitionId], references: [id])
+  user                 User                     @relation(fields: [userId], references: [id])
+  applicationCivilizations ApplicationCivilization[]
+
+  @@unique([competitionId, userId])
+}
+
+model ApplicationCivilization {
+  id            Int    @id @default(autoincrement())
+  applicationId Int
+  civId         String
+
+  application  CompetitionApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  civilization Civilization           @relation(fields: [civId], references: [id])
+
+  @@unique([applicationId, civId])
 }
 
 model League {
@@ -29,7 +85,9 @@ model League {
   eloMin   Int
   eloMax   Int?
   imageUrl String?
+  competitionId String?
 
+  competition  Competition?         @relation(fields: [competitionId], references: [id])
   participants LeagueParticipant[]
   series       Series[]
 }
@@ -59,7 +117,8 @@ model Civilization {
   imageUrl String?
   cost     Int
 
-  playerCivilizations PlayerCivilization[]
+  playerCivilizations          PlayerCivilization[]
+  applicationCivilizations     ApplicationCivilization[]
 }
 
 model PlayerCivilization {
