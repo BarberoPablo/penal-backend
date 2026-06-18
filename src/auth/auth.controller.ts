@@ -5,7 +5,7 @@ import { AuthService } from './auth.service.js';
 import type { AuthUser } from './auth.service.js';
 import { AuthUserEntity } from './entities/auth-user.entity.js';
 import { buildSteamLoginUrl } from './steam-openid.js';
-import { authConfig } from './config.js';
+import { AUTH_COOKIE_NAME, authConfig } from './config.js';
 import { Public } from './decorators/public.decorator.js';
 import { CurrentUser } from './decorators/current-user.decorator.js';
 
@@ -29,7 +29,7 @@ export class AuthController {
     const query = req.query as Record<string, string>;
     const { user, token } = await this.authService.handleSteamCallback(query);
 
-    res.cookie('token', token, this.authService.getCookieConfig());
+    res.cookie(AUTH_COOKIE_NAME, token, this.authService.getCookieConfig());
 
     return res.redirect(authConfig.frontendUrl);
   }
@@ -38,7 +38,7 @@ export class AuthController {
   @Post('logout')
   @HttpCode(200)
   logout(@Res({ passthrough: true }) res: Response) {
-    res.clearCookie('token', { path: '/' });
+    res.clearCookie(AUTH_COOKIE_NAME, { path: '/' });
     return { message: 'Logged out' };
   }
 
