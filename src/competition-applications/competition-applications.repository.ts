@@ -3,7 +3,19 @@ import { PrismaService } from '../prisma/prisma.service.js';
 export class CompetitionApplicationsRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findPendingByUser(competitionId: string, userId: number) {
+  async findById(id: number) {
+    return this.prisma.competitionApplication.findUnique({
+      where: { id },
+      include: {
+        applicationCivilizations: {
+          include: { civilization: true },
+        },
+        user: true,
+      },
+    });
+  }
+
+  async findByUser(competitionId: string, userId: number) {
     return this.prisma.competitionApplication.findUnique({
       where: {
         competitionId_userId: { competitionId, userId },
@@ -16,16 +28,11 @@ export class CompetitionApplicationsRepository {
     });
   }
 
-  async create(
-    competitionId: string,
-    userId: number,
-    civIds: string[],
-  ) {
+  async create(competitionId: string, userId: number, civIds: string[]) {
     return this.prisma.competitionApplication.create({
       data: {
         competitionId,
         userId,
-        status: 'PENDING',
         applicationCivilizations: {
           create: civIds.map((civId) => ({ civId })),
         },
@@ -48,6 +55,50 @@ export class CompetitionApplicationsRepository {
         },
       },
       orderBy: { submittedAt: 'desc' },
+    });
+  }
+
+  async accept(
+    applicationId: number,
+    userId: number,
+    leagueId: string,
+    civIds: string[],
+  ) {
+    return this.prisma.client.$transaction(async (tx: any) => {
+      await tx.competitionApplication.delete({
+        where: { id: applicationId },
+      });
+
+      const participant = await tx.leagueParticipant.create({
+        data: {
+          leagueId,
+          userId,
+        },
+      });
+
+      await tx.playerCivilization.createMany({
+        data: civIds.map((civId) => ({
+          participantId: participant.id,
+          civId,
+        })),
+      });
+
+      return participant;
+    });
+  }
+
+  async reject(applicationId: number) {
+    return this.prisma.competitionApplication.delete({
+      where: { id: applicationId },
+    });
+  }
+
+  async findExistingParticipation(competitionId: string, userId: number) {
+    return this.prisma.leagueParticipant.findFirst({
+      where: {
+        userId,
+        league: { competitionId },
+      },
     });
   }
 }

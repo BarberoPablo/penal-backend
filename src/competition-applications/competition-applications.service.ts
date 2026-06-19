@@ -21,10 +21,7 @@ export class CompetitionApplicationsService {
     userId: number,
     dto: CreateApplicationDto,
   ) {
-    const existing = await this.repository.findPendingByUser(
-      competitionId,
-      userId,
-    );
+    const existing = await this.repository.findByUser(competitionId, userId);
 
     if (existing) {
       throw new BadRequestException(
@@ -48,13 +45,66 @@ export class CompetitionApplicationsService {
   }
 
   async getMyApplication(competitionId: string, userId: number) {
-    const application = await this.repository.findPendingByUser(
-      competitionId,
-      userId,
-    );
+    const application = await this.repository.findByUser(competitionId, userId);
 
     if (!application) return null;
 
     return new ApplicationResponseDto(application);
+  }
+
+  async accept(applicationId: number, competitionId: string, leagueId: string) {
+    const application = await this.repository.findById(applicationId);
+
+    if (!application) {
+      throw new NotFoundException('Solicitud no encontrada.');
+    }
+
+    if (application.competitionId !== competitionId) {
+      throw new BadRequestException(
+        'La solicitud no pertenece a esta competición.',
+      );
+    }
+
+    const existingParticipation =
+      await this.repository.findExistingParticipation(
+        competitionId,
+        application.userId,
+      );
+
+    if (existingParticipation) {
+      throw new BadRequestException(
+        'El usuario ya participa en una liga de esta competición.',
+      );
+    }
+
+    const civIds = application.applicationCivilizations.map((ac) => ac.civId);
+
+    const participant = await this.repository.accept(
+      applicationId,
+      application.userId,
+      leagueId,
+      civIds,
+    );
+
+    return { participantId: participant.id, leagueId: participant.leagueId };
+  }
+
+  async reject(applicationId: number, competitionId: string) {
+    const application = await this.repository.findById(applicationId);
+
+    if (!application) {
+      throw new NotFoundException('Solicitud no encontrada.');
+    }
+
+    if (application.competitionId !== competitionId) {
+      throw new BadRequestException(
+        'La solicitud no pertenece a esta competición.',
+      );
+    }
+
+    // La aplicación se elimina completamente, permitiendo al usuario volver a aplicar en el futuro.
+    await this.repository.reject(applicationId);
+
+    return { message: 'Solicitud rechazada y eliminada.' };
   }
 }
