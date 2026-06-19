@@ -12,12 +12,6 @@ enum Role {
   ADMIN
 }
 
-enum ApplicationStatus {
-  PENDING
-  ACCEPTED
-  REJECTED
-}
-
 model User {
   id          Int      @id @default(autoincrement())
   steamId     String?  @unique
@@ -57,9 +51,7 @@ model CompetitionApplication {
   id            Int               @id @default(autoincrement())
   competitionId String
   userId        Int
-  status        ApplicationStatus @default(PENDING)
   submittedAt   DateTime          @default(now())
-  reviewedAt    DateTime?
 
   competition          Competition              @relation(fields: [competitionId], references: [id])
   user                 User                     @relation(fields: [userId], references: [id])
