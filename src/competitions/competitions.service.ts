@@ -17,4 +17,8 @@ export class CompetitionsService {
   findOne(id: string) {
     return this.repository.findById(id);
   }
+
+  findMyAdmin(userId: number) {
+    return this.repository.findByAdmin(userId);
+  }
 }

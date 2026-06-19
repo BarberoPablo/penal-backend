@@ -28,4 +28,19 @@ export class CompetitionsRepository {
       },
     });
   }
+
+  async findByAdmin(userId: number) {
+    return this.prisma.competition.findMany({
+      where: {
+        admins: { some: { userId } },
+      },
+      include: {
+        leagues: true,
+        admins: {
+          include: { user: { select: { displayName: true } } },
+        },
+      },
+      orderBy: { name: 'asc' },
+    });
+  }
 }
