@@ -34,6 +34,13 @@ export class CompetitionApplicationsController {
   }
 
   @CompetitionAdmin()
+  @Get()
+  @ApiOkResponse({ type: ApplicationResponseDto, isArray: true })
+  findAll(@Param('competitionId') competitionId: string) {
+    return this.applicationsService.findAll(competitionId);
+  }
+
+  @CompetitionAdmin()
   @Post(':id/accept')
   accept(
     @Param('competitionId') competitionId: string,

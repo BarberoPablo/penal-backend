@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  BadRequestException,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { CompetitionApplicationsRepository } from './competition-applications.repository.js';
 import { CreateApplicationDto } from './dto/create-application.dto.js';
@@ -16,11 +12,7 @@ export class CompetitionApplicationsService {
     this.repository = new CompetitionApplicationsRepository(prisma);
   }
 
-  async create(
-    competitionId: string,
-    userId: number,
-    dto: CreateApplicationDto,
-  ) {
+  async create(competitionId: string, userId: number, dto: CreateApplicationDto) {
     const existing = await this.repository.findByUser(competitionId, userId);
 
     if (existing) {
@@ -44,6 +36,11 @@ export class CompetitionApplicationsService {
     return new ApplicationResponseDto(application);
   }
 
+  async findAll(competitionId: string) {
+    const applications = await this.repository.findByCompetition(competitionId);
+    return applications.map((app) => new ApplicationResponseDto(app));
+  }
+
   async getMyApplication(competitionId: string, userId: number) {
     const application = await this.repository.findByUser(competitionId, userId);
 
@@ -60,16 +57,13 @@ export class CompetitionApplicationsService {
     }
 
     if (application.competitionId !== competitionId) {
-      throw new BadRequestException(
-        'La solicitud no pertenece a esta competición.',
-      );
+      throw new BadRequestException('La solicitud no pertenece a esta competición.');
     }
 
-    const existingParticipation =
-      await this.repository.findExistingParticipation(
-        competitionId,
-        application.userId,
-      );
+    const existingParticipation = await this.repository.findExistingParticipation(
+      competitionId,
+      application.userId,
+    );
 
     if (existingParticipation) {
       throw new BadRequestException(
@@ -97,9 +91,7 @@ export class CompetitionApplicationsService {
     }
 
     if (application.competitionId !== competitionId) {
-      throw new BadRequestException(
-        'La solicitud no pertenece a esta competición.',
-      );
+      throw new BadRequestException('La solicitud no pertenece a esta competición.');
     }
 
     // La aplicación se elimina completamente, permitiendo al usuario volver a aplicar en el futuro.
