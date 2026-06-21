@@ -10,6 +10,8 @@ function optional(name: string, fallback: string): string {
   return process.env[name] ?? fallback;
 }
 
+export const AUTH_COOKIE_NAME = "pnal-app-token";
+
 export const authConfig = {
   jwtSecret: required('JWT_SECRET'),
   jwtExpiresIn: optional('JWT_EXPIRES_IN', '30d'),

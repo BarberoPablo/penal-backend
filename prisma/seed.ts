@@ -79,6 +79,13 @@ const civilizations = [
   { id: "wu", name: "Wu", imageUrl: "https://i.postimg.cc/6TsbsjP7/menu-techtree-wu-convertido-de-png.webp", cost: 140 },
 ];
 
+const competition = {
+  id: "liga-penal",
+  name: "Liga Penal",
+  description: "Competición por ligas basada en el rating ELO. Los jugadores ascienden y descienden según su rendimiento en cada temporada.",
+  imageUrl: "https://i.postimg.cc/j2tf0cgQ/liga-penal.webp",
+};
+
 const leagues = [
   { id: "league-i", name: "League I", eloMin: 2000, eloMax: null, imageUrl: "https://i.postimg.cc/qMt2y2nJ/liga-I.webp" },
   { id: "league-ii", name: "League II", eloMin: 1800, eloMax: 1999, imageUrl: "https://i.postimg.cc/CLZbkbDn/liga-II.webp" },
@@ -162,12 +169,19 @@ async function seed() {
     });
   }
 
+  console.log("Seeding competition...");
+  await prisma.competition.upsert({
+    where: { id: competition.id },
+    update: competition,
+    create: competition,
+  });
+
   console.log("Seeding leagues...");
   for (const league of leagues) {
     await prisma.league.upsert({
       where: { id: league.id },
-      update: league,
-      create: league,
+      update: { ...league, competitionId: competition.id },
+      create: { ...league, competitionId: competition.id },
     });
   }
 

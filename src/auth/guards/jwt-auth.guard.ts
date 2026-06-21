@@ -3,6 +3,7 @@ import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator.js';
+import { AUTH_COOKIE_NAME } from '../config.js';
 import { AuthService, AuthUser } from '../auth.service.js';
 
 interface RequestWithUser extends Request {
@@ -26,7 +27,7 @@ export class JwtAuthGuard {
     if (isPublic) return true;
 
     const request = context.switchToHttp().getRequest<RequestWithUser>();
-    const token = request.cookies?.['token'];
+    const token = request.cookies?.[AUTH_COOKIE_NAME];
 
     if (!token) throw new UnauthorizedException('Missing auth token');
 
