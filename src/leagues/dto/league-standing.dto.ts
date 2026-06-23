@@ -21,4 +21,7 @@ export class LeagueStandingDto {
 
   @ApiProperty({ example: ['W', 'L', 'W', 'W', 'L'], enum: ['W', 'L'], isArray: true })
   recentForm!: ('W' | 'L')[];
+
+  @ApiProperty({ example: ['civ-1', 'civ-2', 'civ-3', 'civ-4', 'civ-5'] })
+  civilizationIds!: string[];
 }

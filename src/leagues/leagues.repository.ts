@@ -57,7 +57,7 @@ export class LeaguesRepository {
   async getParticipantsByLeagueId(leagueId: string) {
     return this.prisma.leagueParticipant.findMany({
       where: { leagueId },
-      include: { user: true },
+      include: { user: true, civilizations: true },
       orderBy: { points: 'desc' },
     });
   }

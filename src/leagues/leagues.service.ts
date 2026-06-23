@@ -39,6 +39,7 @@ export class LeaguesService {
       currentElo: p.user.elo,
       peakElo: p.user.elo,
       recentForm: [],
+      civilizationIds: (p as any).civilizations?.map((pc: any) => pc.civId) ?? [],
     }));
 
     const completedSeries = series.filter((s) => s.status === 'COMPLETED');
