@@ -101,4 +101,16 @@ export class CompetitionApplicationsRepository {
       },
     });
   }
+
+  async findParticipationWithLeague(competitionId: string, userId: number) {
+    return this.prisma.leagueParticipant.findFirst({
+      where: {
+        userId,
+        league: { competitionId },
+      },
+      include: {
+        league: { select: { id: true, name: true } },
+      },
+    });
+  }
 }

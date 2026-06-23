@@ -1,30 +1,22 @@
-# Liga Penal Backend — Domain Model
+# Liga Penal — MVP Domain Model
 
-## 1. Core Architecture: Competition-centric design
-
-The platform started as a League-only system. The architecture has evolved to support multiple competition formats. The key insight is that a League is just one type of Competition — the domain model should not be coupled to a specific competition type.
+## 1. Architecture Overview
 
 ```
-User
-  ↓
-Participation (LeagueParticipant)
-  ↓
-Competition (League)
+User ──→ League
+  │
+  └── PlayerCivilization ──→ Civilization
+  │
+  └── Series (as player1/player2) ──→ Match
 ```
 
-### Separation of concerns
-
-| Layer             | Responsibility                                                            |
-| ----------------- | ------------------------------------------------------------------------- |
-| **User**          | Identity, authentication, global profile (avatar, display name, Steam ID) |
-| **Participation** | Competition-specific data (points, civilization selections, statistics)   |
-| **Competition**   | Rules, boundaries (ELO ranges), scheduling, series management             |
-
-A user does not "belong to" a league. A user **participates** in a league. This distinction allows the same user to participate in multiple competition types (League, Tournament, Cup, etc.) in the future without modifying the User model.
+The platform is a League-only system for Age of Empires II competitive play.
+Users belong to a league (ranked by ELO thresholds), select civilizations within a budget,
+and compete in series (best-of-N matches).
 
 ---
 
-## 2. Prisma Schema
+## 2. Prisma Schema (actual)
 
 ### User
 
@@ -34,21 +26,22 @@ model User {
   steamId     String?  @unique
   displayName String
   avatarUrl   String?
-  role        Role     @default(USER)
   elo         Int      @default(1000)
+  leagueId    String?
+  league      League?  @relation(fields: [leagueId], references: [id])
 
-  participations  LeagueParticipant[]
-  teamMemberships SeriesTeamMember[]
+  playerCivilizations PlayerCivilization[]
+  seriesAsPlayer1     Series[]            @relation("Player1")
+  seriesAsPlayer2     Series[]            @relation("Player2")
+  wonSeries           Series[]            @relation("SeriesWinner")
+  matchResults        Match[]             @relation("MatchWinner")
 }
 ```
 
-Responsibilities:
+Users have a global `elo` rating and belong to at most one league via `leagueId`.
+Profile is display-only (no Steam auth yet — see `docs/security.md`).
 
-- Authentication and identity
-- Global player skill rating (`elo`)
-- Profile information
-
-### League (a Competition type)
+### League
 
 ```prisma
 model League {
@@ -58,114 +51,83 @@ model League {
   eloMax   Int?
   imageUrl String?
 
-  participants LeagueParticipant[]
-  series       Series[]
+  players             User[]
+  playerCivilizations PlayerCivilization[]
+  series              Series[]
 }
 ```
 
-A League is the first and currently only Competition type. It owns participants and series. Standing positions and points are tracked through `LeagueParticipant`, not directly on the User.
+`playerCount` and `matchesPlayed` are **computed** at query time (not stored),
+returned by the `GET /leagues` and `GET /leagues/:id/detail` endpoints.
 
-### LeagueParticipant (the key innovation)
+### Civilization
 
 ```prisma
-model LeagueParticipant {
-  id       Int @id @default(autoincrement())
-  leagueId String
-  userId   Int
-  points   Int @default(0)
+model Civilization {
+  id       String  @id
+  name     String  @unique
+  imageUrl String?
+  cost     Int
 
-  league        League                @relation(fields: [leagueId], references: [id])
-  user          User                  @relation(fields: [userId], references: [id])
-  civilizations PlayerCivilization[]
-
-  @@unique([leagueId, userId])
+  playerCivilizations PlayerCivilization[]
+  matchesAsP1Civ      Match[]             @relation("Player1Civ")
+  matchesAsP2Civ      Match[]             @relation("Player2Civ")
 }
 ```
 
-This is the bridge between User and League. Competition-specific data lives here:
-
-- League standings (`points`)
-- Civilization selections (`PlayerCivilization`)
-- Future: league-specific statistics, win rates
-
-A `@@unique` constraint on `[leagueId, userId]` ensures each user can only participate once per league.
+The column was renamed from `baseCost` → `cost` to match the frontend type.
 
 ### PlayerCivilization
 
 ```prisma
 model PlayerCivilization {
-  id            Int    @id @default(autoincrement())
-  participantId Int
-  civId         String
+  id    Int    @id @default(autoincrement())
+  userId Int
+  civId  String
+  leagueId String
 
-  participant  LeagueParticipant @relation(fields: [participantId], references: [id])
-  civilization Civilization      @relation(fields: [civId], references: [id])
+  user         User         @relation(fields: [userId], references: [id])
+  civilization Civilization @relation(fields: [civId], references: [id])
+  league       League       @relation(fields: [leagueId], references: [id])
 
-  @@unique([participantId, civId])
+  @@unique([userId, civId, leagueId])
 }
 ```
 
-Civilization selections belong to the **participation**, not the User. This reflects the domain correctly — a player buys civilizations for a specific league, not globally.
+Tracks which civilizations a player has selected per league.
+A `@@unique` constraint prevents duplicates per user/league.
 
-### Series (renamed competitionId)
+### Series
 
 ```prisma
 model Series {
-  id            Int          @id @default(autoincrement())
-  competitionId String       // references League.id today, named for future competition types
-  teamAId       Int          @unique
-  teamBId       Int          @unique
-  winnerTeamId  Int?
-  status        SeriesStatus @default(PENDING)
-  round         Int          @default(1)
-  scheduledAt   DateTime?
-  completedAt   DateTime?
+  id          Int          @id @default(autoincrement())
+  leagueId    String
+  player1Id   Int
+  player2Id   Int
+  winnerId    Int?
+  status      SeriesStatus @default(PENDING)
+  round       Int          @default(1)
+  scheduledAt DateTime?
+  completedAt DateTime?
 
-  league  League      @relation(fields: [competitionId], references: [id])
-  teamA   SeriesTeam  @relation("TeamA", fields: [teamAId], references: [id])
-  teamB   SeriesTeam  @relation("TeamB", fields: [teamBId], references: [id])
-  winner  SeriesTeam? @relation("SeriesWinner", fields: [winnerTeamId], references: [id])
+  league  League @relation(fields: [leagueId], references: [id])
+  player1 User   @relation("Player1", fields: [player1Id], references: [id])
+  player2 User   @relation("Player2", fields: [player2Id], references: [id])
+  winner  User?  @relation("SeriesWinner", fields: [winnerId], references: [id])
   matches Match[]
 }
+
+enum SeriesStatus {
+  PENDING
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
 ```
 
-`competitionId` currently references `League.id`. The field is intentionally named for future-proofing — when Tournament or other competition types are added, the field name doesn't need to change.
-
-`teamAId` and `teamBId` are both `@unique`, enforcing that each SeriesTeam is used in at most one series.
-
-### SeriesTeam and SeriesTeamMember
-
-```prisma
-model SeriesTeam {
-  id      Int      @id @default(autoincrement())
-  side    TeamSide
-
-  members     SeriesTeamMember[]
-  seriesA     Series[] @relation("TeamA")
-  seriesB     Series[] @relation("TeamB")
-  seriesWinner Series[] @relation("SeriesWinner")
-  matchWinner Match[]  @relation("MatchWinner")
-}
-
-model SeriesTeamMember {
-  id     Int @id @default(autoincrement())
-  teamId Int
-  userId Int
-
-  team SeriesTeam @relation(fields: [teamId], references: [id])
-  user User       @relation(fields: [userId], references: [id])
-
-  @@unique([teamId, userId])
-}
-
-enum TeamSide { A, B }
-```
-
-Teams replace `player1Id` / `player2Id` on Series. For the MVP, each team has exactly one member (1v1). The same schema supports 2v2, 3v3, or clan wars in the future without any migration.
-
-Key design decision: `SeriesTeamMember.userId` references `User`, not `LeagueParticipant`. This keeps the team model competition-agnostic — a team is made of people, not participations.
-
-The FK is **unidirectional**: only `Series` has `teamAId` / `teamBId` columns. The reverse relations on `SeriesTeam` (`seriesA`, `seriesB`, `seriesWinner`, `matchWinner`) are virtual navigation properties required by Prisma — they create no physical FK columns. There is no circular dependency.
+A series is a best-of-N set of matches between two players.
+`scheduledAt` and `completedAt` track scheduling and completion dates.
 
 ### Match
 
@@ -174,121 +136,128 @@ model Match {
   id           Int       @id @default(autoincrement())
   seriesId     Int
   mapName      String?
-  winnerTeamId Int?
+  winnerId     Int?
   player1CivId String?
   player2CivId String?
   completedAt  DateTime?
 
-  series     Series         @relation(fields: [seriesId], references: [id])
-  winnerTeam SeriesTeam?    @relation("MatchWinner", fields: [winnerTeamId], references: [id])
-  player1Civ Civilization?  @relation("Player1Civ", fields: [player1CivId], references: [id])
-  player2Civ Civilization?  @relation("Player2Civ", fields: [player2CivId], references: [id])
+  series      Series         @relation(fields: [seriesId], references: [id])
+  winner      User?          @relation("MatchWinner", fields: [winnerId], references: [id])
+  player1Civ  Civilization?  @relation("Player1Civ", fields: [player1CivId], references: [id])
+  player2Civ  Civilization?  @relation("Player2Civ", fields: [player2CivId], references: [id])
 }
 ```
 
-`winnerTeamId` replaces `winnerId`. `player1CivId` / `player2CivId` are kept as-is — the project is 1v1 and will remain so for the foreseeable future. Generalizing civilization selection for team matches would add complexity without value today.
+An individual game within a series. Tracks which map was played, which civilizations
+each player used, and who won.
 
 ---
 
-## 3. ELO vs Points
+## 3. API Endpoints (active)
 
-| Concept    | Location                   | Purpose                                                                             |
-| ---------- | -------------------------- | ----------------------------------------------------------------------------------- |
-| **ELO**    | `User.elo`                 | Global player skill rating. Represents matchmaking and ranking across the platform. |
-| **Points** | `LeagueParticipant.points` | Competition-specific score. Determines standings position within a League.          |
+| Method | Path | Purpose |
+|--------|------|---------|
+| `GET` | `/civilizations` | List all civilizations (with `cost`) |
+| `GET` | `/leagues` | List all leagues (with computed `playerCount`, `matchesPlayed`) |
+| `GET` | `/leagues/:id/detail` | Full league detail (standings, matches, upcoming matches) |
 
-These are separate concepts. A player's global ELO does not automatically become their league points.
-
-Example:
-
-```
-Pablo
-  Global ELO: 1650
-
-  League Bronze:  14 pts
-  League Gold:    8 pts
-```
-
-The seed data initializes `points: 0`, not copying ELO.
+All other CRUD endpoints (`POST`, `PATCH`, `DELETE`) are commented out in their controllers
+for safety. The services and repositories remain active for future use.
 
 ---
 
-## 4. Design Decisions
+## 4. Seed Data
 
-### Competition-first naming
+| Entity | Count | Notes |
+|--------|-------|-------|
+| Civilizations | 52 | All AoE2 civs with `cost` values 80–300 |
+| Leagues | 5 | League I (2000+) through League V (0–1199) |
+| Users | 43 | Distributed across leagues by ELO |
 
-The foreign key on Series is named `competitionId`, not `leagueId`. It currently references `League.id`. The intent is documented here and in the schema itself so that future contributors understand the naming is deliberate. When Tournament or other competition types are introduced, the only change needed is to remove the `@relation` to League and point `competitionId` to a new Competition model.
-
-### SeriesTeam is future-proof, Match civilization fields are not
-
-- `SeriesTeam` + `SeriesTeamMember` support 1v1 today and future team formats without schema changes.
-- `Match.player1CivId` / `player2CivId` are hardcoded for 1v1. Team match civilization selection will be designed when needed.
-
-### One-way FK from Series to SeriesTeam
-
-Only `Series` holds `teamAId` / `teamBId` foreign keys. `SeriesTeam` has no `seriesId` column. This avoids a circular dependency and simplifies creation — you create teams first, then create the series referencing them.
-
-### Controllers commented out by default
-
-Series, Match, PlayerCivilization, and User controllers are commented out. They have working services and repositories but no active HTTP endpoints. Uncomment them when the frontend needs those features. This keeps the API surface small during MVP.
+No Series or Match seed data exists yet.
 
 ---
 
-## 5. Deployment
+## 5. League Detail Endpoint
 
-Frontend and backend are separate repositories:
+`GET /leagues/:id/detail` returns:
+
+```json
+{
+  "league": { "id", "name", "eloMin", "eloMax", "playerCount", "matchesPlayed", "imageUrl" },
+  "standings": [
+    { "rank", "playerName", "playerInitial", "points", "currentElo", "peakElo", "recentForm": [] }
+  ],
+  "matches": [
+    { "id", "player1Name", "player2Name", "score1", "score2", "winner", "date", "mapName" }
+  ],
+  "upcomingMatches": [
+    { "id", "player1Name", "player2Name", "date", "time" }
+  ]
+}
+```
+
+- **Standings**: Users in the league sorted by ELO descending.
+- **Matches**: Completed series with scores derived from individual match wins.
+- **Upcoming matches**: Pending/active series scheduled for the future.
+- `recentForm` returns empty until win/loss tracking is implemented.
+
+---
+
+## 6. Active Endpoints vs Dead Code
+
+| Controller | Status | Reason |
+|------------|--------|--------|
+| `CivilizationsController` | Only `GET /` active | Frontend reads civs for builder |
+| `LeaguesController` | `GET /` + `GET /:id/detail` active | Frontend reads leagues + detail |
+| `UsersController` | All routes commented | No user management UI yet |
+| `SeriesController` | All routes commented | No series management yet |
+| `MatchesController` | All routes commented | No match management yet |
+| `PlayerCivilizationsController` | All routes commented | No builder persistence yet |
+
+Modules, services, and repositories are kept intact — they are needed for dependency
+injection and will be re-enabled when the frontend gains those features.
+
+---
+
+## 7. Security
+
+⚠️ **All active endpoints are read-only and open.** No authentication is implemented.
+See `docs/security.md` for the full roadmap (Steam login + role-based guards).
+
+---
+
+## 8. Frontend Integration
+
+The frontend (Next.js at `C:\Pablo\Programacion\liga-penal`) previously used mock data
+in `mock/`. That directory has been deleted. Services now fetch from the real backend:
+
+| Service | Backend call |
+|---------|-------------|
+| `civilization-service.ts` | `GET /civilizations` |
+| `league-service.ts` | `GET /leagues` + `GET /leagues/:id/detail` |
+
+---
+
+## 9. Deployment
 
 ```
-/mnt/c/Pablo/Programacion/liga-penal          — Next.js frontend
-/home/pablo/projects/liga-penal-backend       — NestJS backend
+C:\Pablo\Programacion\liga-penal          — Next.js frontend (port 3000)
+/home/pablo/projects/liga-penal-backend   — NestJS backend (port 3001)
 ```
 
 Backend stack:
-
-- NestJS with TypeScript
-- Prisma ORM with PostgreSQL
-- Docker Compose for PostgreSQL (port 5433)
-- Swagger at `GET /api-json`
-- Auth via Steam OpenID 2.0 + JWT in HTTP-only cookie
-
-The two-repo structure reflects real-world project organization and showcases frontend and backend skills independently.
+- NestJS 11 with TypeScript (ESM via `"type": "module"`)
+- Prisma 7 with PostgreSQL 15 (Docker Compose, port 5433)
+- Swagger at `GET /api`
 
 ---
 
-## 6. MVP Scope
+## 10. MVP Priorities (next)
 
-Current implementation:
-
-- NestJS setup with Prisma and PostgreSQL
-- Full auth flow (Steam login → JWT cookie → `/auth/me`)
-- League listing and detail endpoints
-- Civilization listing endpoint
-- Seed data with 5 leagues, 43 civilizations, ~43 users
-- Swagger documentation + OpenAPI type generation for frontend
-
-Next priorities:
-
-1. Add `@ApiOkResponse(AuthUserEntity)` to `GET /auth/me` — done
-2. League participation endpoints (join/leave league)
-3. Civilization builder (select civs for a league participation)
-4. Series and match management endpoints (uncomment controllers)
-5. Admin endpoints for league/civilization management
-
----
-
-## 7. Future entities (not planned for MVP)
-
-```
-Tournament
-Cup
-Swiss
-DoubleElimination
-Season
-```
-
-These are not planned but the architecture supports them. When a new competition type is added:
-
-- A new competition entity is created (e.g. `Tournament`)
-- A new participant entity is created if needed (e.g. `TournamentParticipant`)
-- `Series.competitionId` points to the new entity
-- The User model remains unchanged
+1. Steam OAuth login + JWT session cookie
+2. Admin roles (`User.role: USER | ADMIN`)
+3. League participation endpoints (join/leave league)
+4. Civilization builder persistence (re-enable `PlayerCivilizationsController`)
+5. Series and match creation endpoints (re-enable controllers)
+6. Match result submission → ELO recalculation

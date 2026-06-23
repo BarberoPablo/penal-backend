@@ -6,6 +6,7 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator.js';
 import { CompetitionApplicationsService } from './competition-applications.service.js';
 import { ApplicationResponseDto } from './dto/application-response.dto.js';
 import { CreateApplicationDto } from './dto/create-application.dto.js';
+import { GetMyStatusDto } from './dto/get-my-status.dto.js';
 
 @ApiTags('Competition Applications')
 @Controller('competitions/:competitionId/applications')
@@ -31,6 +32,15 @@ export class CompetitionApplicationsController {
     @CurrentUser() user: AuthUser,
   ) {
     return this.applicationsService.getMyApplication(competitionId, user.id);
+  }
+
+  @Get('my-status')
+  @ApiOkResponse({ type: GetMyStatusDto })
+  getMyStatus(
+    @Param('competitionId') competitionId: string,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.applicationsService.getMyStatus(competitionId, user.id);
   }
 
   @CompetitionAdmin()

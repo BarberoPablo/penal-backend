@@ -8,6 +8,7 @@ import { PrismaService } from '../prisma/prisma.service.js';
 import { CompetitionApplicationsRepository } from './competition-applications.repository.js';
 import { ApplicationResponseDto } from './dto/application-response.dto.js';
 import { CreateApplicationDto } from './dto/create-application.dto.js';
+import { GetMyStatusDto } from './dto/get-my-status.dto.js';
 
 @Injectable()
 export class CompetitionApplicationsService {
@@ -96,6 +97,23 @@ export class CompetitionApplicationsService {
     );
 
     return { participantId: participant.id, leagueId: participant.leagueId };
+  }
+
+  async getMyStatus(competitionId: string, userId: number) {
+    const [application, participation] = await Promise.all([
+      this.repository.findByUser(competitionId, userId),
+      this.repository.findParticipationWithLeague(competitionId, userId),
+    ]);
+
+    return new GetMyStatusDto({
+      application: application ? new ApplicationResponseDto(application) : null,
+      participation: participation
+        ? {
+            leagueId: participation.league.id,
+            leagueName: participation.league.name,
+          }
+        : null,
+    });
   }
 
   async reject(applicationId: number, competitionId: string) {
