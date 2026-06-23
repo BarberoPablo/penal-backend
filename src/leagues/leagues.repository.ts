@@ -1,10 +1,22 @@
+import { NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
 
 export class LeaguesRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAll() {
+  async findAll(competitionId: string) {
+    const competition = await this.prisma.competition.findUnique({
+      where: { id: competitionId },
+    });
+
+    if (!competition) {
+      throw new NotFoundException('Competencia no encontrada.');
+    }
+
+    const where = competitionId ? { competitionId } : {};
+
     const leagues = await this.prisma.league.findMany({
+      where,
       orderBy: { name: 'asc' },
       include: {
         _count: { select: { participants: true } },
@@ -70,7 +82,11 @@ export class LeaguesRepository {
         playerB: { include: { user: true } },
         winner: { include: { user: true } },
         matches: {
-          include: { playerACiv: { include: { civilization: true } }, playerBCiv: { include: { civilization: true } }, winner: { include: { user: true } } },
+          include: {
+            playerACiv: { include: { civilization: true } },
+            playerBCiv: { include: { civilization: true } },
+            winner: { include: { user: true } },
+          },
         },
       },
       orderBy: { id: 'desc' },

@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { LeaguesService } from './leagues.service.js';
@@ -23,8 +24,8 @@ export class LeaguesController {
   @Public()
   @Get()
   @ApiOkResponse({ type: LeagueEntity, isArray: true })
-  findAll() {
-    return this.leaguesService.findAll();
+  findAll(@Query('competitionId') competitionId: string) {
+    return this.leaguesService.findAll(competitionId);
   }
 
   @Public()

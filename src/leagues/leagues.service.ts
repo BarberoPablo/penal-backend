@@ -14,8 +14,8 @@ export class LeaguesService {
     this.repository = new LeaguesRepository(prisma);
   }
 
-  findAll() {
-    return this.repository.findAll();
+  findAll(competitionId: string) {
+    return this.repository.findAll(competitionId);
   }
 
   findOne(id: string) {
@@ -39,19 +39,15 @@ export class LeaguesService {
       currentElo: p.user.elo,
       peakElo: p.user.elo,
       recentForm: [],
-      civilizationIds: (p as any).civilizations?.map((pc: any) => pc.civId) ?? [],
+      civilizationIds:
+        (p as any).civilizations?.map((pc: any) => pc.civId) ?? [],
     }));
 
     const completedSeries = series.filter((s) => s.status === 'COMPLETED');
     const matches: LeagueMatchResultDto[] = completedSeries.map((s) => {
-      const p1Wins = s.matches.filter(
-        (m) => m.winnerId === s.playerAId,
-      ).length;
-      const p2Wins = s.matches.filter(
-        (m) => m.winnerId === s.playerBId,
-      ).length;
-      const winner =
-        s.winnerId === s.playerAId ? 'player1' : 'player2';
+      const p1Wins = s.matches.filter((m) => m.winnerId === s.playerAId).length;
+      const p2Wins = s.matches.filter((m) => m.winnerId === s.playerBId).length;
+      const winner = s.winnerId === s.playerAId ? 'player1' : 'player2';
       const firstMap = s.matches[0]?.playerACiv?.civilization?.name ?? '';
 
       return {
@@ -61,9 +57,7 @@ export class LeaguesService {
         score1: p1Wins,
         score2: p2Wins,
         winner,
-        date: s.completedAt
-          ? s.completedAt.toISOString().split('T')[0]
-          : '',
+        date: s.completedAt ? s.completedAt.toISOString().split('T')[0] : '',
         mapName: firstMap,
       };
     });
@@ -71,24 +65,22 @@ export class LeaguesService {
     const pendingSeries = series.filter(
       (s) => s.status === 'PENDING' || s.status === 'ACTIVE',
     );
-    const upcomingMatches: LeagueUpcomingMatchDto[] = pendingSeries.map(
-      (s) => {
-        const date = s.scheduledAt
-          ? s.scheduledAt.toISOString().split('T')[0]
-          : '';
-        const time = s.scheduledAt
-          ? s.scheduledAt.toISOString().split('T')[1].slice(0, 5)
-          : '';
+    const upcomingMatches: LeagueUpcomingMatchDto[] = pendingSeries.map((s) => {
+      const date = s.scheduledAt
+        ? s.scheduledAt.toISOString().split('T')[0]
+        : '';
+      const time = s.scheduledAt
+        ? s.scheduledAt.toISOString().split('T')[1].slice(0, 5)
+        : '';
 
-        return {
-          id: s.id,
-          player1Name: s.playerA.user.displayName,
-          player2Name: s.playerB.user.displayName,
-          date,
-          time,
-        };
-      },
-    );
+      return {
+        id: s.id,
+        player1Name: s.playerA.user.displayName,
+        player2Name: s.playerB.user.displayName,
+        date,
+        time,
+      };
+    });
 
     return { league, standings, matches, upcomingMatches };
   }
