@@ -4,6 +4,7 @@ import type { AuthUser } from '../auth/auth.service.js';
 import { CompetitionAdmin } from '../auth/decorators/competition-admin.decorator.js';
 import { CurrentUser } from '../auth/decorators/current-user.decorator.js';
 import { CompetitionApplicationsService } from './competition-applications.service.js';
+import { AcceptApplicationDto } from './dto/accept-application.dto.js';
 import { ApplicationResponseDto } from './dto/application-response.dto.js';
 import { CreateApplicationDto } from './dto/create-application.dto.js';
 import { GetMyStatusDto } from './dto/get-my-status.dto.js';
@@ -55,9 +56,9 @@ export class CompetitionApplicationsController {
   accept(
     @Param('competitionId') competitionId: string,
     @Param('id') id: string,
-    @Body('leagueId') leagueId: string,
+    @Body() dto: AcceptApplicationDto,
   ) {
-    return this.applicationsService.accept(+id, competitionId, leagueId);
+    return this.applicationsService.accept(+id, competitionId, dto);
   }
 
   @CompetitionAdmin()

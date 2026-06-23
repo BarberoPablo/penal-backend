@@ -6,6 +6,7 @@ import {
 import { MIN_CIVILIZATIONS } from '../common/constants.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { CompetitionApplicationsRepository } from './competition-applications.repository.js';
+import { AcceptApplicationDto } from './dto/accept-application.dto.js';
 import { ApplicationResponseDto } from './dto/application-response.dto.js';
 import { CreateApplicationDto } from './dto/create-application.dto.js';
 import { GetMyStatusDto } from './dto/get-my-status.dto.js';
@@ -62,7 +63,7 @@ export class CompetitionApplicationsService {
     return new ApplicationResponseDto(application);
   }
 
-  async accept(applicationId: number, competitionId: string, leagueId: string) {
+  async accept(applicationId: number, competitionId: string, dto: AcceptApplicationDto) {
     const application = await this.repository.findById(applicationId);
 
     if (!application) {
@@ -92,7 +93,7 @@ export class CompetitionApplicationsService {
     const participant = await this.repository.accept(
       applicationId,
       application.userId,
-      leagueId,
+      dto.leagueId,
       civIds,
     );
 

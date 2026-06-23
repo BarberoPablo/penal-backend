@@ -6,6 +6,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service.js';
 import { CompetitionParticipantsRepository } from './competition-participants.repository.js';
 import { ParticipantResponseDto } from './dto/participant-response.dto.js';
+import { UpdateParticipantDto } from './dto/update-participant.dto.js';
 
 @Injectable()
 export class CompetitionParticipantsService {
@@ -23,7 +24,7 @@ export class CompetitionParticipantsService {
   async update(
     participantId: number,
     competitionId: string,
-    leagueId: string,
+    dto: UpdateParticipantDto,
   ) {
     const participant = await this.repository.findById(participantId);
 
@@ -37,13 +38,13 @@ export class CompetitionParticipantsService {
       );
     }
 
-    if (participant.leagueId === leagueId) {
+    if (participant.leagueId === dto.leagueId) {
       throw new BadRequestException(
         'Participant already in the target league.',
       );
     }
 
-    const targetLeague = await this.repository.findLeagueById(leagueId);
+    const targetLeague = await this.repository.findLeagueById(dto.leagueId);
 
     if (!targetLeague || targetLeague.competitionId !== competitionId) {
       throw new BadRequestException(
@@ -52,7 +53,7 @@ export class CompetitionParticipantsService {
     }
 
     const existing = await this.repository.findExistingInLeague(
-      leagueId,
+      dto.leagueId,
       participant.userId,
     );
 
@@ -64,7 +65,7 @@ export class CompetitionParticipantsService {
 
     const updated = await this.repository.updateLeague(
       participantId,
-      leagueId,
+      dto.leagueId,
     );
 
     return new ParticipantResponseDto(updated);

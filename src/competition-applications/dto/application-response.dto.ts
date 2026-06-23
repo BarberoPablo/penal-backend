@@ -12,7 +12,7 @@ class UserInfo {
   @ApiProperty({ example: 'PlayerName' })
   displayName!: string;
 
-  @ApiProperty({ example: 'https://...', nullable: true })
+  @ApiProperty({ example: 'https://...', nullable: true, type: String })
   avatarUrl!: string | null;
 }
 
