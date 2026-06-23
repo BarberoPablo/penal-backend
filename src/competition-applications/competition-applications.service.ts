@@ -90,6 +90,12 @@ export class CompetitionApplicationsService {
 
     const civIds = application.applicationCivilizations.map((ac) => ac.civId);
 
+    if (civIds.length < MIN_CIVILIZATIONS) {
+      throw new BadRequestException(
+        `La solicitud debe tener al menos ${MIN_CIVILIZATIONS} civilizaciones.`,
+      );
+    }
+
     const participant = await this.repository.accept(
       applicationId,
       application.userId,
