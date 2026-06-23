@@ -1,5 +1,14 @@
-import { Body, Controller, Get, Param, Patch } from '@nestjs/common';
-import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import {
+  Body,
+  Controller,
+  DefaultValuePipe,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Query,
+} from '@nestjs/common';
+import { ApiOkResponse, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { CompetitionAdmin } from '../auth/decorators/competition-admin.decorator.js';
 import { CompetitionParticipantsService } from './competition-participants.service.js';
 import { ParticipantResponseDto } from './dto/participant-response.dto.js';
@@ -15,8 +24,13 @@ export class CompetitionParticipantsController {
   @CompetitionAdmin()
   @Get()
   @ApiOkResponse({ type: ParticipantResponseDto, isArray: true })
-  findAll(@Param('competitionId') competitionId: string) {
-    return this.participantsService.findAll(competitionId);
+  @ApiQuery({ name: 'leagueOffset', required: false, type: Number })
+  findAll(
+    @Param('competitionId') competitionId: string,
+    @Query('leagueOffset', new DefaultValuePipe(0), ParseIntPipe)
+    leagueOffset: number,
+  ) {
+    return this.participantsService.findAll(competitionId, leagueOffset);
   }
 
   @CompetitionAdmin()

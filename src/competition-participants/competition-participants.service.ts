@@ -16,8 +16,11 @@ export class CompetitionParticipantsService {
     this.repository = new CompetitionParticipantsRepository(prisma);
   }
 
-  async findAll(competitionId: string) {
-    const participants = await this.repository.findByCompetition(competitionId);
+  async findAll(competitionId: string, leagueOffset = 0) {
+    const participants = await this.repository.findByCompetition(
+      competitionId,
+      leagueOffset,
+    );
     return participants.map((p) => new ParticipantResponseDto(p));
   }
 

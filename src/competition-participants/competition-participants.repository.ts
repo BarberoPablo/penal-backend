@@ -3,11 +3,18 @@ import { PrismaService } from '../prisma/prisma.service.js';
 export class CompetitionParticipantsRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findByCompetition(competitionId: string) {
+  async findByCompetition(competitionId: string, leagueOffset = 0) {
+    const leagues = await this.prisma.league.findMany({
+      where: { competitionId },
+      orderBy: { eloMin: 'desc' },
+      skip: leagueOffset,
+      take: 1,
+    });
+
+    if (leagues.length === 0) return [];
+
     return this.prisma.leagueParticipant.findMany({
-      where: {
-        league: { competitionId },
-      },
+      where: { leagueId: leagues[0].id },
       include: {
         user: { select: { id: true, displayName: true, avatarUrl: true } },
         league: { select: { name: true } },
