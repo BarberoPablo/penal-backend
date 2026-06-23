@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { MIN_CIVILIZATIONS } from '../common/constants.js';
+import { BUDGET, MIN_CIVILIZATIONS } from '../common/constants.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { CompetitionApplicationsRepository } from './competition-applications.repository.js';
 import { AcceptApplicationDto } from './dto/accept-application.dto.js';
@@ -41,6 +41,22 @@ export class CompetitionApplicationsService {
       );
     }
 
+    if (new Set(dto.civilizationIds).size !== dto.civilizationIds.length) {
+      throw new BadRequestException(
+        'No puedes seleccionar la misma civilización más de una vez.',
+      );
+    }
+
+    const civs = await this.repository.getCivilizationsByIds(
+      dto.civilizationIds,
+    );
+    const totalCost = civs.reduce((sum, c) => sum + c.cost, 0);
+    if (totalCost > BUDGET) {
+      throw new BadRequestException(
+        `El costo total de las civilizaciones (${totalCost}) supera el presupuesto disponible (${BUDGET}).`,
+      );
+    }
+
     const application = await this.repository.create(
       competitionId,
       userId,
@@ -63,7 +79,11 @@ export class CompetitionApplicationsService {
     return new ApplicationResponseDto(application);
   }
 
-  async accept(applicationId: number, competitionId: string, dto: AcceptApplicationDto) {
+  async accept(
+    applicationId: number,
+    competitionId: string,
+    dto: AcceptApplicationDto,
+  ) {
     const application = await this.repository.findById(applicationId);
 
     if (!application) {
@@ -93,6 +113,16 @@ export class CompetitionApplicationsService {
     if (civIds.length < MIN_CIVILIZATIONS) {
       throw new BadRequestException(
         `La solicitud debe tener al menos ${MIN_CIVILIZATIONS} civilizaciones.`,
+      );
+    }
+
+    const totalCost = application.applicationCivilizations.reduce(
+      (sum, ac) => sum + ac.civilization.cost,
+      0,
+    );
+    if (totalCost > BUDGET) {
+      throw new BadRequestException(
+        `El costo total de las civilizaciones (${totalCost}) supera el presupuesto disponible (${BUDGET}).`,
       );
     }
 

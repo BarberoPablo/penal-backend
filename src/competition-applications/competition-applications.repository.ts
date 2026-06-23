@@ -58,6 +58,13 @@ export class CompetitionApplicationsRepository {
     });
   }
 
+  async getCivilizationsByIds(ids: string[]) {
+    return this.prisma.civilization.findMany({
+      where: { id: { in: ids } },
+      select: { id: true, cost: true },
+    });
+  }
+
   async accept(
     applicationId: number,
     userId: number,
