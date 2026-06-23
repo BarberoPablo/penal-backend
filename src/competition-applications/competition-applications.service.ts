@@ -1,8 +1,13 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { MIN_CIVILIZATIONS } from '../common/constants.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { CompetitionApplicationsRepository } from './competition-applications.repository.js';
-import { CreateApplicationDto } from './dto/create-application.dto.js';
 import { ApplicationResponseDto } from './dto/application-response.dto.js';
+import { CreateApplicationDto } from './dto/create-application.dto.js';
 
 @Injectable()
 export class CompetitionApplicationsService {
@@ -12,7 +17,11 @@ export class CompetitionApplicationsService {
     this.repository = new CompetitionApplicationsRepository(prisma);
   }
 
-  async create(competitionId: string, userId: number, dto: CreateApplicationDto) {
+  async create(
+    competitionId: string,
+    userId: number,
+    dto: CreateApplicationDto,
+  ) {
     const existing = await this.repository.findByUser(competitionId, userId);
 
     if (existing) {
@@ -21,9 +30,12 @@ export class CompetitionApplicationsService {
       );
     }
 
-    if (!dto.civilizationIds || dto.civilizationIds.length < 5) {
+    if (
+      !dto.civilizationIds ||
+      dto.civilizationIds.length < MIN_CIVILIZATIONS
+    ) {
       throw new BadRequestException(
-        'Debes seleccionar exactamente 5 civilizaciones.',
+        `Debes seleccionar al menos ${MIN_CIVILIZATIONS} civilizaciones.`,
       );
     }
 
@@ -57,13 +69,16 @@ export class CompetitionApplicationsService {
     }
 
     if (application.competitionId !== competitionId) {
-      throw new BadRequestException('La solicitud no pertenece a esta competición.');
+      throw new BadRequestException(
+        'La solicitud no pertenece a esta competición.',
+      );
     }
 
-    const existingParticipation = await this.repository.findExistingParticipation(
-      competitionId,
-      application.userId,
-    );
+    const existingParticipation =
+      await this.repository.findExistingParticipation(
+        competitionId,
+        application.userId,
+      );
 
     if (existingParticipation) {
       throw new BadRequestException(
@@ -91,7 +106,9 @@ export class CompetitionApplicationsService {
     }
 
     if (application.competitionId !== competitionId) {
-      throw new BadRequestException('La solicitud no pertenece a esta competición.');
+      throw new BadRequestException(
+        'La solicitud no pertenece a esta competición.',
+      );
     }
 
     // La aplicación se elimina completamente, permitiendo al usuario volver a aplicar en el futuro.
