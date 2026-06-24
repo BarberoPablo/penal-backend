@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { BUDGET, MIN_CIVILIZATIONS } from '../common/constants.js';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { UsersRepository } from '../users/users.repository.js';
 import { CompetitionApplicationsRepository } from './competition-applications.repository.js';
 import { AcceptApplicationDto } from './dto/accept-application.dto.js';
 import { ApplicationResponseDto } from './dto/application-response.dto.js';
@@ -14,9 +15,11 @@ import { GetMyStatusDto } from './dto/get-my-status.dto.js';
 @Injectable()
 export class CompetitionApplicationsService {
   private readonly repository: CompetitionApplicationsRepository;
+  private readonly usersRepository: UsersRepository;
 
   constructor(prisma: PrismaService) {
     this.repository = new CompetitionApplicationsRepository(prisma);
+    this.usersRepository = new UsersRepository(prisma);
   }
 
   async create(
@@ -29,6 +32,13 @@ export class CompetitionApplicationsService {
     if (existing) {
       throw new BadRequestException(
         'Ya tienes una solicitud pendiente para esta competición.',
+      );
+    }
+
+    const user = await this.usersRepository.findById(userId);
+    if (!user?.aoe2ProfileId) {
+      throw new BadRequestException(
+        'Debes tener un perfil de Age of Empires 2: DE para inscribirte.',
       );
     }
 
