@@ -3,5 +3,9 @@ export class UserEntity {
   steamId!: string | null;
   displayName!: string;
   avatarUrl!: string | null;
-  elo!: number;
+  aoe2ProfileId!: number | null;
+  aoe2Alias!: string | null;
+  aoe2Elo!: number | null;
+  aoe2PeakElo!: number | null;
+  aoe2LastSync!: Date | null;
 }

@@ -34,7 +34,11 @@ export class UsersRepository {
     steamId?: string;
     displayName: string;
     avatarUrl?: string;
-    elo?: number;
+    aoe2ProfileId?: number;
+    aoe2Alias?: string;
+    aoe2Elo?: number;
+    aoe2PeakElo?: number;
+    aoe2LastSync?: Date;
   }) {
     return this.prisma.user.create({ data });
   }
@@ -44,7 +48,11 @@ export class UsersRepository {
     data: {
       displayName?: string;
       avatarUrl?: string;
-      elo?: number;
+      aoe2ProfileId?: number;
+      aoe2Alias?: string;
+      aoe2Elo?: number;
+      aoe2PeakElo?: number;
+      aoe2LastSync?: Date;
     },
   ) {
     return this.prisma.user.update({ where: { id }, data });

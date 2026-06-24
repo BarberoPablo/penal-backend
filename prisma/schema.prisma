@@ -13,12 +13,16 @@ enum Role {
 }
 
 model User {
-  id          Int      @id @default(autoincrement())
-  steamId     String?  @unique
-  displayName String
-  avatarUrl   String?
-  role        Role     @default(USER)
-  elo         Int      @default(1000)
+  id            Int      @id @default(autoincrement())
+  steamId       String?  @unique
+  displayName   String
+  avatarUrl     String?
+  role          Role     @default(USER)
+  aoe2ProfileId Int?     @unique
+  aoe2Alias     String?
+  aoe2Elo       Int?
+  aoe2PeakElo   Int?
+  aoe2LastSync  DateTime?
 
   participations         LeagueParticipant[]
   competitionAdmins      CompetitionAdmin[]

@@ -16,9 +16,25 @@ export class CreateUserDto {
   @IsString()
   avatarUrl?: string;
 
-  @ApiPropertyOptional({ default: 1000 })
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsInt()
+  aoe2ProfileId?: number;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  aoe2Alias?: string;
+
+  @ApiPropertyOptional()
   @IsOptional()
   @IsInt()
   @Min(0)
-  elo?: number;
+  aoe2Elo?: number;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  aoe2PeakElo?: number;
 }
