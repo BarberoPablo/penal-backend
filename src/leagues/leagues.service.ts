@@ -36,8 +36,8 @@ export class LeaguesService {
       playerName: p.user.displayName,
       playerInitial: p.user.displayName.charAt(0).toUpperCase(),
       points: p.points,
-      currentElo: p.user.elo,
-      peakElo: p.user.elo,
+      aoe2Elo: p.user.aoe2Elo,
+      aoe2PeakElo: p.user.aoe2PeakElo,
       recentForm: [],
       civilizationIds:
         (p as any).civilizations?.map((pc: any) => pc.civId) ?? [],
