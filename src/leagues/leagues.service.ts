@@ -34,7 +34,8 @@ export class LeaguesService {
     const standings: LeagueStandingDto[] = participants.map((p, i) => ({
       rank: i + 1,
       playerName: p.user.displayName,
-      playerInitial: p.user.displayName.charAt(0).toUpperCase(),
+      aoe2Alias: p.user.aoe2Alias,
+      aoe2ProfileId: p.user.aoe2ProfileId,
       points: p.points,
       aoe2Elo: p.user.aoe2Elo,
       aoe2PeakElo: p.user.aoe2PeakElo,

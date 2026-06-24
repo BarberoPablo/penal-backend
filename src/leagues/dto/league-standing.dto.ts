@@ -7,8 +7,11 @@ export class LeagueStandingDto {
   @ApiProperty({ example: 'Pablo' })
   playerName!: string;
 
-  @ApiProperty({ example: 'P' })
-  playerInitial!: string;
+  @ApiProperty({ example: 'Pablo', nullable: true, type: String })
+  aoe2Alias!: string | null;
+
+  @ApiProperty({ example: 123456, nullable: true, type: Number })
+  aoe2ProfileId!: number | null;
 
   @ApiProperty({ example: 2150 })
   points!: number;
