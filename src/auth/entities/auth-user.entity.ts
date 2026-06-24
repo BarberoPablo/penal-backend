@@ -16,6 +16,18 @@ export class AuthUserEntity {
   @ApiProperty({ enum: ['USER', 'ADMIN'] })
   role!: 'USER' | 'ADMIN';
 
-  @ApiProperty({ example: 1000 })
-  elo!: number;
+  @ApiProperty({ nullable: true, type: Number })
+  aoe2ProfileId!: number | null;
+
+  @ApiProperty({ nullable: true, type: String })
+  aoe2Alias!: string | null;
+
+  @ApiProperty({ nullable: true, type: Number })
+  aoe2Elo!: number | null;
+
+  @ApiProperty({ nullable: true, type: Number })
+  aoe2PeakElo!: number | null;
+
+  @ApiProperty({ nullable: true, type: Date })
+  aoe2LastSync!: Date | null;
 }
