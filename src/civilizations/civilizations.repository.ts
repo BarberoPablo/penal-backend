@@ -11,10 +11,10 @@ export class CivilizationsRepository {
     return this.prisma.civilization.findUnique({ where: { id } });
   }
 
-  async create(    data: {
+  async create(data: {
     id: string;
     name: string;
-    imageUrl?: string;
+    imageUrl: string;
     cost: number;
   }) {
     return this.prisma.civilization.create({ data });

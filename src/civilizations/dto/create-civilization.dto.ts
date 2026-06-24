@@ -13,7 +13,7 @@ export class CreateCivilizationDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
-  imageUrl?: string;
+  imageUrl: string;
 
   @ApiProperty({ example: 240 })
   @IsInt()
